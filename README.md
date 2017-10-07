@@ -51,8 +51,8 @@ figure out the current settings, you can use `get*` methods (for instance,
 `getspeed(cam)` yields the current number of frames per second and exposure
 time).  As a general rule, the `set*!(cam, ...)` methods shall return the
 actual settings which may be only a proxy of what has been required and these
-methods shall throw a `ScientificCameras.NotImplementedException` when a
-specific setting is not implemented (so that you can specifically catch it).
+methods shall throw a `ScientificCameras.NotImplementedException` when a given
+setting is not implemented (so that you can specifically catch it).
 
 
 ### Reading a given number of images
@@ -112,6 +112,9 @@ available for some other purposes.
 
 
 ## Implementing a concrete interface
+
+An example of concrete implementation of the interface is given by the
+[`Phoenix.jl`](https://github.com/emmt/Phoenix.jl) module.
 
 The `ScientificCameras` module mostly provides an infrastructure for concrete
 interfaces to cameras.  To be callable (without throwing a
