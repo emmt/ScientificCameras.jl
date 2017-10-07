@@ -60,12 +60,23 @@ struct NotImplementedException <: Exception
    sym::Symbol
 end
 
-# Colors
+# Color types (note that the constructors always use red, green, blue order
+# whatever is the order in memory).
+#
 # (FIXME: use Julia package ColorTypes at https://github.com/JuliaGraphics/ColorTypes.jl)
 struct RGB{T}
     r::T
     g::T
     b::T
+    RGB{T}(r, g, b) where {T} = new{T}(r, g, b)
+end
+struct BGR{T}
+    b::T
+    g::T
+    r::T
+    BGR{T}(r, g, b) where {T} = new{T}(b, g, r)
 end
 const RGB24 = RGB{UInt8}
 const RGB48 = RGB{UInt16}
+const BGR24 = BGR{UInt8}
+const BGR48 = BGR{UInt16}
