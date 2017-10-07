@@ -1,13 +1,15 @@
 # A Julia infrastructure for scientific cameras
 
-The `ScientificCameras` module provides an infrastructure to interface
-scientific cameras with [`Julia`](http://julialang.org/).
+The `ScientificCameras` package provides an infrastructure to interface
+scientific cameras with [`Julia`](http://julialang.org/).  This infrastructure
+is an attempt to unify the use of interfaced cameras in Julia.
+
 
 ## Table of contents
 
 * [Typical usage (for end-users).](#typical-usage)
 * [Implementing a concrete interface (for developers).](#implementing-a-concrete-interface)
-* [Installation of the module.](#installation)
+* [Installation of the package.](#installation)
 
 
 ## Typical usage
@@ -97,7 +99,7 @@ end
 ### Closing the camera
 
 When the camera is no longer needed, you may close it to disconnect it from the
-hardware and release related ressources.  This is as simple as:
+hardware and release related resources.  This is as simple as:
 
 ```julia
 close(cam)
@@ -114,13 +116,13 @@ available for some other purposes.
 ## Implementing a concrete interface
 
 An example of concrete implementation of the interface is given by the
-[`Phoenix.jl`](https://github.com/emmt/Phoenix.jl) module.
+[`Phoenix.jl`](https://github.com/emmt/Phoenix.jl) package.
 
-The `ScientificCameras` module mostly provides an infrastructure for concrete
+The `ScientificCameras` package mostly provides an infrastructure for concrete
 interfaces to cameras.  To be callable (without throwing a
 `ScientificCameras.NotImplementedException`), most methods must be extended for
 types of camera derived from the abstract `ScientificCameras.ScientificCamera`
-type.  The `ScientificCameras` module however handles the many different
+type.  The `ScientificCameras` package however handles the many different
 possible signatures of these methods and takes care of properly converting the
 arguments, so that it is generally sufficient to extend a single version of
 each method.
@@ -177,8 +179,9 @@ A complete interface would extend the following methods:
 
 ## Installation
 
-`ScienticCameras.jl` is not yet an [official Julia package](https://pkg.julialang.org/)
-so you have to clone the repository to install the module:
+`ScienticCameras.jl` is not yet an
+[official Julia package](https://pkg.julialang.org/) so you have to clone the
+repository to install the package:
 
 ```julia
 Pkg.clone("https://github.com/emmt/ScienticCameras.jl.git")
