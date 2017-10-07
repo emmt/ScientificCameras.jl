@@ -12,8 +12,9 @@ scientific cameras with [`Julia`](http://julialang.org/).
 
 ## Typical usage
 
-To explain typical usage of the methods provided by `ScientificCameras`, it is
-best to present typical examples of the different stages.
+To explain the usage of the methods provided by `ScientificCameras`, it is best
+to present typical examples of the different stages involved in acquisition of
+images with a camera.
 
 
 ### Connection and configuration
@@ -47,23 +48,24 @@ setdepth!(cam, 8) # set the number of bits per pixel
 Note that you may choose different settings (for instance, a smaller ROI) and
 that not all these settings may be available for the considered camera.  To
 figure out the current settings, you can use `get*` methods (for instance,
-`getspeed(cam)` yields the current number of frames per seconds and exposure
-time).  As general rules: the `set*!(cam, ...)` methods shall return the actual
-settings which may ony be a proxy of what has been required and these methods
-shall throw a `ScientificCameras.NotImplementedException` when a specific
-setting is not impleneted (so that you can specifically catch it).
+`getspeed(cam)` yields the current number of frames per second and exposure
+time).  As a general rule, the `set*!(cam, ...)` methods shall return the
+actual settings which may be only a proxy of what has been required and these
+methods shall throw a `ScientificCameras.NotImplementedException` when a
+specific setting is not implemented (so that you can specifically catch it).
 
 
 ### Reading a given number of images
 
-Assuming you have a connected and configured camera, its time to read images.
-To read a given number of images, use:
+Assuming you have a connected and configured camera instance, say `cam`, it is
+time to read images.  Reading a given number of images is done by something
+like:
 
 ```julia
 imgs = read(cam, UInt8, 10)
 ```
 
-which read 10 images of pixel type `UInt8` and return them as a vector of
+which reads 10 images of pixel type `UInt8` and return them as a vector of
 images.  Each image is a Julia array whose element type is the pixel type and
 the dimensions those of the chosen region of interest (ROI).  It is however
 possible that the first dimension (the *width*) be different to that of the ROI
@@ -78,13 +80,12 @@ have connected and configured your camera, continuous acquisition is done by a
 loop like:
 
 ```julia
-bufs = start(cam, UInt16, 4)
+bufs = start(cam, UInt16, 4) # start continuous acquisition
 while true
-    # Wait for next frame.
-    index, number, overflows = wait(cam)
+    index, number, overflows = wait(cam) # wait for next frame
     buf = bufs[index] # get image buffer
     ... # process the image buffer
-    release(cam)
+    release(cam) # frame buffer is again available for acquisition
     if number > 100
         abort(cam) # abort acquisition and exit the loop
         break
@@ -172,9 +173,6 @@ A complete interface would extend the following methods:
 
 
 ## Installation
-
-To be able to use this module, you must have installed ActiveSilicon Phoenix
-libraries and the module [`IPC.jl`](https://github.com/emmt/IPC.jl).
 
 `ScienticCameras.jl` is not yet an [official Julia package](https://pkg.julialang.org/)
 so you have to clone the repository to install the module:
