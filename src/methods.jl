@@ -362,22 +362,22 @@ function checkspeed(cam::ScientificCamera, fps::Float64, exp::Float64)
     end
 end
 
-# FIXME: end of my checking...
-
 """
-    getgain(cam) -> (fps, exp)
+    getgain(cam) -> gain
 
-yields number of frames per second and exposure duration (in seconds) for the camera `cam`.
+yields the gain of the analog to digital conversion of pixel values for the
+camera `cam`.  The retuned value is a `Float64`.
 
 See also: [`setgain!`](@ref).
 
 """
-getgain(cam::ScientificCamera; kwds...) = notimplemented(:getgain)
+getgain(cam::ScientificCamera; kwds...) =
+    notimplemented(:getgain)
 
 """
     setgain!(cam, gain) -> gain
 
-set the gain for the analog to digital conversion of pixel values by the
+sets the gain of the analog to digital conversion of pixel values for the
 camera `cam`.  The actual value is returned (as a `Float64`).
 
 See also: [`getgain`](@ref), [`setbias!`](@ref), [`setgamma!`](@ref).
@@ -392,18 +392,19 @@ setgain!(cam::ScientificCamera, gain; kwds...) =
 """
     getbias(cam) -> bias
 
-yields the bias for the analog to digital conversion of pixel values by the
+yields the bias of the analog to digital conversion of pixel values for the
 camera `cam`.  The retuned value is a `Float64`.
 
 See also: [`setbias!`](@ref).
 
 """
-getbias(cam::ScientificCamera; kwds...) = notimplemented(:getbias)
+getbias(cam::ScientificCamera; kwds...) =
+    notimplemented(:getbias)
 
 """
     setbias!(cam, bias) -> bias
 
-set the bias for the analog to digital conversion of pixel values for the
+sets the bias of the analog to digital conversion of pixel values for the
 camera `cam`.  The actual value is returned (as a `Float64`).
 
 See also: [`getbias`](@ref).
@@ -415,22 +416,22 @@ setbias!(cam::ScientificCamera, bias::Float64; kwds...) =
 setbias!(cam::ScientificCamera, bias; kwds...) =
     setbias!(cam, convert(Float64, bias); kwds...)
 
-
 """
     getgamma(cam) -> gamma
 
-yields the gamma correction factor for the analog to digital conversion of
-pixel values by the camera `cam`.  The returned value is a `Float64`.
+yields the gamma correction factor of the analog to digital conversion of pixel
+values for the camera `cam`.  The returned value is a `Float64`.
 
 See also: [`setgamma!`](@ref), [`getbias`](@ref), [`getgain`](@ref).
 
 """
-getgamma(cam::ScientificCamera; kwds...) = notimplemented(:getgamma)
+getgamma(cam::ScientificCamera; kwds...) =
+    notimplemented(:getgamma)
 
 """
     setgamma!(cam, gamma) -> gamma
 
-set the gamma correction factor for the analog to digital conversion of pixel
+sets the gamma correction factor of the analog to digital conversion of pixel
 values by the camera `cam`.  The actual value is returned (as a `Float64`).
 
 See also: [`getgamma`](@ref).
