@@ -5,12 +5,12 @@ scientific cameras with [`Julia`](http://julialang.org/).
 
 ## Table of contents
 
-* [Usage of the provided methods for the end-user.](#usage)
-* [Tricks](#tricks)
+* [Typical usage (for end-users).](#typical-usage)
+* [Implementing a concrete interface (for developers).](#implementing-a-concrete-interface)
 * [Installation of the module.](#installation)
 
 
-## Usage
+## Typical usage
 
 To explain typical usage of the methods provided by `ScientificCameras`, it is
 best to present typical examples of the different stages.
@@ -41,7 +41,7 @@ setspeed!(cam, 100, 0.005) # 100 frames per second, 5ms of exposure
 setgain!(cam, 1.0) # set the gain of the analog to digital conversion
 setbias!(cam, 0.0) # set the bias of the analog to digital conversion
 setgamma!(cam, 1.0) # set the gamma correction of the analog to digital conversion
-setdepth!(cam, 8) # set the number of bits per pixels
+setdepth!(cam, 8) # set the number of bits per pixel
 ```
 
 Note that you may choose different settings (for instance, a smaller ROI) and
@@ -74,7 +74,8 @@ the chosen pixel type.
 ### Continuous acquisition
 
 Another way to acquire images is to process them as they arrive.  Assuming you
-have connected and configured your camera, continuous acquisition is:
+have connected and configured your camera, continuous acquisition is done by a
+loop like:
 
 ```julia
 bufs = start(cam, UInt16, 4)
@@ -94,8 +95,8 @@ end
 
 ### Closing the camera
 
-When the camera is no longer needed, you may close it to release related
-ressources.  This is as simple as:
+When the camera is no longer needed, you may close it to disconnect it from the
+hardware and release related ressources.  This is as simple as:
 
 ```julia
 close(cam)
@@ -105,11 +106,11 @@ In practice, this is even more simpler as you can avoid calling the `close`
 method.  Indeed any serious concrete implementations should take care of
 releasing resources when the camera instance is no longer referenced and
 eventually finalized by Julia's garbage collector.  It may be necessary to
-close the camera to release resources immediately so that they are immediately
+close the camera to disconnect it from the hardware so that it is immediately
 available for some other purposes.
 
 
-## Concrete types
+## Implementing a concrete interface
 
 The `ScientificCameras` module mostly provides an infrastructure for concrete
 interfaces to cameras.  To be callable (without throwing a
@@ -119,6 +120,39 @@ type.  The `ScientificCameras` module however handles the many different
 possible signatures of these methods and takes care of properly converting the
 arguments, so that it is generally sufficient to extend a single version of
 each method.
+
+Assuming `Camera` is such a type (*i.e.*, `Camera <: ScientificCamera`),
+typically:
+
+```julia
+# Import all methods such that they can be extended and some types
+# (only methods are exported by ScientificCameras).
+importall ScientificCameras
+import ScientificCameras: ScientificCamera, ROI
+import Base: open, close, read.
+
+function open(::Type{Camera}, args...; kwds...)
+    cam = ... # create camera instance
+    ...       # setup camera and open connection
+    return cam
+end
+
+function close(::Type{Camera}; kwds...)
+    ... # release resources
+end
+
+getfullwidth(cam::Camera) = cam.fullwidth
+getfullheight(cam::Camera) = cam.fullheight
+
+getroi(cam::Camera) =
+    (cam.xoff, cam.yoff, cam.width, cam.height)
+
+function setroi!(cam::Camera, roi::ROI)
+    checkroi(cam, roi)
+    ...
+    return getroi(cam)
+end
+```
 
 A complete interface would extend the following methods:
 
@@ -136,37 +170,6 @@ A complete interface would extend the following methods:
   conversion.
 - `getdepth` and `setdepth!` for the number of bits per pixels.
 
-Assuming `Camera` is such a type (*i.e.*, `Camera <: ScientificCamera`),
-typically:
-
-    # Import all methods such that they can be extended and some types
-    # (only methods are exported by ScientificCameras).
-    importall ScientificCameras
-    import ScientificCameras: ScientificCamera, ROI
-    import Base: open, close, read.
-
-    function open(::Type{Camera}, args...; kwds...)
-        cam = ... # create camera instance
-        ...       # setup camera and open connection
-        return cam
-    end
-
-    function close(::Type{Camera}; kwds...)
-        ... # release resources
-    end
-
-    getfullwidth(cam::Camera) = cam.fullwidth
-    getfullheight(cam::Camera) = cam.fullheight
-
-    getroi(cam::Camera) =
-        (cam.xoff, cam.yoff, cam.width, cam.height)
-
-    function setroi!(cam::Camera, roi::ROI)
-        checkroi(cam, roi)
-        ...
-        return getroi(cam)
-    end
-
 
 ## Installation
 
@@ -176,19 +179,25 @@ libraries and the module [`IPC.jl`](https://github.com/emmt/IPC.jl).
 `ScienticCameras.jl` is not yet an [official Julia package](https://pkg.julialang.org/)
 so you have to clone the repository to install the module:
 
-    Pkg.clone("https://github.com/emmt/ScienticCameras.jl.git")
+```julia
+Pkg.clone("https://github.com/emmt/ScienticCameras.jl.git")
+```
 
 There is nothing to build so no needs to call `Pkg.build("ScienticCameras")`.
 
 Later, it is sufficient to do:
 
-    Pkg.update("ScienticCameras")
+```julia
+Pkg.update("ScienticCameras")
+```
 
 to pull the latest version.  If you have `ScienticCameras.jl` repository not
 managed at all by Julia's package manager, updating is a matter of:
 
-    cd "$REPOSITORY/deps"
-    git pull
+```sh
+cd "$REPOSITORY/deps"
+git pull
+```
 
 assuming `$REPOSITORY` is the path to the top level directory of the
 `ScienticCameras.jl` repository.
