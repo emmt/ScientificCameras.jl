@@ -310,6 +310,32 @@ checkroi(roi::ROI, cam::ScientificCamera; kdws...) =
 checkroi(cam::ScientificCamera, args...; kwds...) =
     checkroi(args..., getfullsize(cam; kdws...))
 
+"""
+    getdepth(cam) -> depth
+
+yields the number of bits per pixel for the camera `cam`.
+
+See also: [`setdepth!`](@ref).
+
+"""
+getdepth(cam::ScientificCamera; kwds...) =
+    notimplemented(:getdepth)
+
+"""
+    setdepth!(cam, depth) -> depth
+
+sets the number of bits per pixel for the camera `cam`.  The actual value is
+returned (as an `Int`).
+
+See also: [`getdepth`](@ref).
+
+"""
+setdepth!(cam::ScientificCamera, depth; kwds...) =
+    setdepth!(cam, convert(Int, depth); kwds...)
+
+# This version is meant to be extended.
+setdepth!(cam::ScientificCamera, depth::Int; kwds...) =
+    notimplemented(:setdepth!)
 
 """
     getspeed(cam) -> (fps, exp)
@@ -331,11 +357,12 @@ camera `cam`.  The actual values are returned (as a tuple of two `Float64`).
 See also: [`getspeed`](@ref), [`checkspeed`](@ref).
 
 """
-setspeed!(cam::ScientificCamera, fps::Float64, exp::Float64; kwds...) =
-    notimplemented(:setspeed!)
-
 setspeed!(cam::ScientificCamera, fps, exp; kwds...) =
     setspeed!(cam, convert(Float64, fps), convert(Float64, exp); kwds...)
+
+# This version is meant to be extended.
+setspeed!(cam::ScientificCamera, fps::Float64, exp::Float64; kwds...) =
+    notimplemented(:setspeed!)
 
 """
     checkspeed(cam, fps, exp)
@@ -383,11 +410,12 @@ camera `cam`.  The actual value is returned (as a `Float64`).
 See also: [`getgain`](@ref), [`setbias!`](@ref), [`setgamma!`](@ref).
 
 """
-setgain!(cam::ScientificCamera, gain::Float64; kwds...) =
-    notimplemented(:setgain!)
-
 setgain!(cam::ScientificCamera, gain; kwds...) =
     setgain!(cam, convert(Float64, gain); kwds...)
+
+# This version is meant to be extended.
+setgain!(cam::ScientificCamera, gain::Float64; kwds...) =
+    notimplemented(:setgain!)
 
 """
     getbias(cam) -> bias
@@ -410,11 +438,12 @@ camera `cam`.  The actual value is returned (as a `Float64`).
 See also: [`getbias`](@ref).
 
 """
-setbias!(cam::ScientificCamera, bias::Float64; kwds...) =
-    notimplemented(:setbias!)
-
 setbias!(cam::ScientificCamera, bias; kwds...) =
     setbias!(cam, convert(Float64, bias); kwds...)
+
+# This version is meant to be extended.
+setbias!(cam::ScientificCamera, bias::Float64; kwds...) =
+    notimplemented(:setbias!)
 
 """
     getgamma(cam) -> gamma
@@ -437,8 +466,9 @@ values by the camera `cam`.  The actual value is returned (as a `Float64`).
 See also: [`getgamma`](@ref).
 
 """
-setgamma!(cam::ScientificCamera, gamma::Float64; kwds...) =
-    notimplemented(:setgamma!)
-
 setgamma!(cam::ScientificCamera, gamma; kwds...) =
     setgamma!(cam, convert(Float64, gamma); kwds...)
+
+# This version is meant to be extended.
+setgamma!(cam::ScientificCamera, gamma::Float64; kwds...) =
+    notimplemented(:setgamma!)

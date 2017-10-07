@@ -168,13 +168,13 @@ A complete interface would extend the following methods:
 - `start`, `wait`, `release`, `stop` and `abort` for continuous acquisition.
 - `getfullwidth`, `getfullheight` for getting the full size of the sensor.
 - `getroi` and `setroi!` for the region of interest.
+- `getdepth` and `setdepth!` for the number of bits per pixels.
 - `getspeed`, `setspeed!` and `checkspeed` for the frame rate and exposure
   time.
 - `getgain` and `setgain!` for the gain of the analog to digital conversion.
 - `getbias` and `setbias!` for the bias of the analog to digital conversion.
 - `getgamma` and `setgamma!` for the gamma correction of the analog to digital
   conversion.
-- `getdepth` and `setdepth!` for the number of bits per pixels.
 
 
 ## Installation
