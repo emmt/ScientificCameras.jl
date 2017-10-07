@@ -18,6 +18,136 @@ Base.showerror(io::IO, err::NotImplementedException) =
     print(io, "method `$(err.sym)` not implemented for this camera")
 
 """
+    open(C, ...) -> cam
+
+creates a camera instance of type `C`, connects it to the hardware
+and returns it.
+
+See also: [`close`](@ref), [`start`](@ref), [`read`](@ref).
+
+"""
+open(::Type{C}, args...; kwds...) where {C<:ScientificCamera} =
+    notimplemented(:open)
+
+"""
+    close(cam)
+
+disconnects camera `cam` from the hardware.
+
+See also: [`open`](@ref).
+
+"""
+close(cam::ScientificCamera) =
+    notimplemented(:close)
+
+"""
+    read(cam, [T,] n = 1) -> imgs
+
+reads `n` images from camera `cam`.  Optional argument `T` is the element type
+of the returned images.  If the type is not specified, it may be determined
+automatically (not all interfaces can do that and not all interfaces can cope
+with arbitrary pixel types).  The result is a vector of images: `imgs[1]` is
+the first image, `imgs[2]` is the second image and so on.  Each image is a 2D
+Julia array.  For instance, the type of `imgs` is `Array{Array{T,2},1}`.
+
+See also: [`open`](@ref), [`start`](@ref).
+
+"""
+read(cam::ScientificCamera, ::Type{T}, n::Integer) where {T} =
+    read(cam, T, convert(Int, n))
+
+read(cam::ScientificCamera, n::Integer) =
+    read(cam, convert(Int, n))
+
+# This version is meant to be extended.
+read(cam::ScientificCamera, ::Type{T}, n::Int = 1) where {T} =
+    notimplemented(:read)
+
+# This version is meant to be extended.
+read(cam::ScientificCamera, n::Int = 1) =
+    notimplemented(:read)
+
+"""
+    start(cam, [T,] n = 1) -> imgs
+
+starts continuous acquisition with camera `cam` using `n` image buffers which
+are returned.  Optional argument `T` is the element type of the returned
+images.  The result is a vector of images, each image is a 2D Julia array.
+
+See also: [`open`](@ref), [`read`](@ref), [`wait`](@ref), [`stop`](@ref),
+          [`abort`](@ref).
+
+"""
+start(cam::ScientificCamera, ::Type{T}, n::Integer) where {T} =
+    start(cam, T, convert(Int, n))
+
+start(cam::ScientificCamera, n::Integer) =
+    start(cam, convert(Int, n))
+
+# This version is meant to be extended.
+start(cam::ScientificCamera, ::Type{T}, n::Int = 1) where {T} =
+    notimplemented(:start)
+
+# This version is meant to be extended.
+start(cam::ScientificCamera, n::Int = 1) =
+    notimplemented(:start)
+
+"""
+    stop(cam)
+
+stops continuous acquisition with camera `cam` after completion of the current
+frame.
+
+See also: [`start`](@ref), [`abort`](@ref).
+
+"""
+stop(cam::ScientificCamera) =
+    notimplemented(:stop)
+
+"""
+    abort(cam)
+
+aborts continuous acquisition with camera `cam` not waiting for the completion
+of the current frame.
+
+See also: [`start`](@ref), [`stop`](@ref).
+
+"""
+abort(cam::ScientificCamera) =
+    notimplemented(:stop)
+
+"""
+    wait(cam [, timeout]) -> index, number, overflows
+
+waits for the next frame (but not longer than `timeout` seconds if specified)
+from camera `cam` and returns the index in the image buffers, the frame number
+and the number of overflows (or acquisition errors) so far.
+
+If properly implemented, waiting for a frame should consume no CPU.
+
+See also: [`start`](@ref), [`release`](@ref).
+
+"""
+wait(cam::ScientificCamera, timeout) =
+    wait(cam, convert(Float64, timeout))
+
+# This version is meant to be extended.
+wait(cam::ScientificCamera, timeout::Float64 = typemax(Float64)) =
+    notimplemented(:wait)
+
+"""
+    release(cam)
+
+releases the last frame received from camera `cam` to indicate that it has been
+processed and can be used again for acquisition.
+
+See also: [`start`](@ref), [`wait`](@ref).
+
+"""
+release(cam::ScientificCamera) =
+    notimplemented(:wait)
+
+"""
     setroi!(cam, xoff, yoff, width, height)
 
 sets the region of interest (ROI) for the images acquired by the camera `cam`:
@@ -32,13 +162,17 @@ An alternative is:
 where the ROI is specified by an instance of the `ScientificCameras.ROI`
 structure.
 
+Note that this method throws an exception if the settings of the ROI cannot be
+axactly applied.  As a consequence, it does not return the actual ROI because
+it can only be identical to the requested one.
+
 See also: [`getroi`](@ref), [`checkroi`](@ref),
           [`ScientificCameras.ROI`](@ref).
 
 """
 function setroi!(cam::ScientificCamera, xoff::Integer, yoff::Integer,
                  width::Integer, height::Integer; kwds...)
-    return setroi!(cam, ROI(xoff, yoff, width, height); kwds...)
+    setroi!(cam, ROI(xoff, yoff, width, height); kwds...)
 end
 
 # This version is meant to be extended.
@@ -50,10 +184,10 @@ setroi!(cam::ScientificCamera, roi::ROI; kwds...) =
     getroi(cam) -> (xoff, yoff, width, height)
 
 yields the current region of interest (ROI) for the images acquired by the
-camera `cam`.  The result is a tuple of 4 integers (`Int`): `xoff` and `yoff`
-are the horizontal and vertical offsets of the ROI relative to the sensor (in
-pixels), `width` and `height` are the horizontal and vertical dimensions of the
-ROI (also in pixels).
+camera `cam`.  The result is a tuple of 4 values: `xoff` and `yoff` are the
+horizontal and vertical offsets of the ROI relative to the sensor, `width` and
+`height` are the horizontal and vertical dimensions of the ROI (all values in
+pixels and of type `Int`).
 
 An alternative is:
 
@@ -64,11 +198,30 @@ which yields the ROI as an instance of the `ScientificCameras.ROI` structure.
 See also: [`setroi!`](@ref), [`ScientificCameras.ROI`](@ref).
 
 """
+getroi(::Type{ROI}, cam::ScientificCamera; kwds...) =
+    ROI(getroi(cam; kwds...)...)
+
+# This version is meant to be extended.
 getroi(cam::ScientificCamera; kwds...) =
     notimplemented(:getroi)
 
-getroi(::Type{ROI}, cam::ScientificCamera; kwds...) =
-    ROI(getroi(cam; kwds...)...)
+"""
+    getfullwidth(cam)  -> fullwidth
+    getfullheight(cam) -> fullheight
+    getfullsize(cam)   -> (fullwidth, fullheight)
+
+respectively yield the maximum width, height and dimensions for the images
+captured by the camera `cam`.
+
+See also: [`setroi!`](@ref).
+
+"""
+getfullwidth(cam::ScientificCamera) = notimplemented(:getfullwidth)
+getfullheight(cam::ScientificCamera) = notimplemented(:getfullheight)
+getfullsize(cam::ScientificCamera) = (getfullwidth(cam), getfullheight(cam))
+
+@doc @doc(getfullwidth) getfullheight
+@doc @doc(getfullwidth) getfullsize
 
 """
 
@@ -157,15 +310,12 @@ checkroi(roi::ROI, cam::ScientificCamera; kdws...) =
 checkroi(cam::ScientificCamera, args...; kwds...) =
     checkroi(args..., getfullsize(cam; kdws...))
 
-getfullwidth(cam::ScientificCamera) = notimplemented(:getfullwidth)
-getfullheight(cam::ScientificCamera) = notimplemented(:getfullheight)
-getfullsize(cam::ScientificCamera) = (getfullwidth(cam), getfullheight(cam))
-
 
 """
     getspeed(cam) -> (fps, exp)
 
-yields number of frames per second and exposure duration (in seconds) for the camera `cam`.
+yields the number of frames per second and exposure duration (in seconds) for
+the camera `cam`.
 
 See also: [`setspeed!`](@ref).
 
@@ -175,7 +325,7 @@ getspeed(cam::ScientificCamera; kwds...) = notimplemented(:getspeed)
 """
     setspeed!(cam, fps, exp) -> (fps, exp)
 
-set the number of frames per second and exposure duration (in seconds) for the
+sets the number of frames per second and exposure duration (in seconds) for the
 camera `cam`.  The actual values are returned (as a tuple of two `Float64`).
 
 See also: [`getspeed`](@ref), [`checkspeed`](@ref).
@@ -187,6 +337,15 @@ setspeed!(cam::ScientificCamera, fps::Float64, exp::Float64; kwds...) =
 setspeed!(cam::ScientificCamera, fps, exp; kwds...) =
     setspeed!(cam, convert(Float64, fps), convert(Float64, exp); kwds...)
 
+"""
+    checkspeed(cam, fps, exp)
+
+throws an exception if the number of frames per second `fps` and/or exposure
+duration `exp` (in seconds) are not valid for the camera `cam`.
+
+See also: [`setspeed!`](@ref).
+
+"""
 checkspeed(cam::ScientificCamera, fps, exp; kwds...) =
     checkspeed(cam, convert(Float64, fps), convert(Float64, exp); kwds...)
 
@@ -202,6 +361,8 @@ function checkspeed(cam::ScientificCamera, fps::Float64, exp::Float64)
         throw(ArgumentError("frame rate times exposure time is too high"))
     end
 end
+
+# FIXME: end of my checking...
 
 """
     getgain(cam) -> (fps, exp)
@@ -280,108 +441,3 @@ setgamma!(cam::ScientificCamera, gamma::Float64; kwds...) =
 
 setgamma!(cam::ScientificCamera, gamma; kwds...) =
     setgamma!(cam, convert(Float64, gamma); kwds...)
-
-
-open(::Type{T}, args...; kwds...) where {T<:ScientificCamera} =
-    notimplemented(:open)
-
-close(cam::ScientificCamera) =
-    notimplemented(:close)
-
-"""
-    read(cam, [T,] n = 1) -> imgs
-
-reads `n` images from camera `cam`.  Optional argument `T` is the element type
-of the returned images.  The result is a vector of images: `imgs[1]` is the
-first image, `imgs[2]` is the second image and so on.  Each image is a 2D Julia
-array.
-
-See also: [`open`](@ref), [`start`](@ref).
-
-"""
-read(cam::ScientificCamera, ::Type{T}, n::Int = 1) where {T} =
-    notimplemented(:read)
-
-read(cam::ScientificCamera, n::Int = 1) =
-    notimplemented(:read)
-
-read(cam::ScientificCamera, ::Type{T}, n::Integer) where {T} =
-    read(cam, T, convert(Int, n))
-
-read(cam::ScientificCamera, n::Integer) =
-    read(cam, convert(Int, n))
-
-
-"""
-    start(cam, [T,] n = 1) -> imgs
-
-starts continuous acquisition with camera `cam` using `n` image buffers.
-Optional argument `T` is the element type of the returned images.  The result
-is a vector of images, each image is a 2D Julia array.
-
-See also: [`open`](@ref), [`read`](@ref), [`wait`](@ref),
-          [`stop`](@ref), [`abort`](@ref).
-
-"""
-start(cam::ScientificCamera, ::Type{T}, n::Int = 1) where {T} =
-    notimplemented(:start)
-
-start(cam::ScientificCamera, n::Int = 1) =
-    notimplemented(:start)
-
-start(cam::ScientificCamera, ::Type{T}, n::Integer) where {T} =
-    start(cam, T, convert(Int, n))
-
-start(cam::ScientificCamera, n::Integer) =
-    start(cam, convert(Int, n))
-
-"""
-    stop(cam)
-
-stops continuous acquisition with camera `cam` after completion of the current
-frame.
-
-See also: [`start`](@ref), [`abort`](@ref).
-
-"""
-stop(cam::ScientificCamera) =
-    notimplemented(:stop)
-
-"""
-    abort(cam)
-
-aborts continuous acquisition with camera `cam` not waiting for the completion
-of the current frame.
-
-See also: [`start`](@ref), [`stop`](@ref).
-
-"""
-abort(cam::ScientificCamera) =
-    notimplemented(:stop)
-
-"""
-    wait(cam [, timeout]) -> index, number, overflows
-
-waits for the next frame (but not longer than `timeout` seconds if specified)
-from camera `cam` and returns the index in the image buffers, the frame number
-and the number of overflows (or acquisition errors) so far.
-
-If properly implemented, waiting for a frame should consume no CPU.
-
-See also: [`start`](@ref), [`release`](@ref).
-
-"""
-wait(cam::ScientificCamera, timeout::Float64 = typemax(Float64)) =
-    notimplemented(:wait)
-
-"""
-    release(cam)
-
-releases the last frame received from camera `cam` to indicate that it has been
-processed and can be used again for acquisition.
-
-See also: [`start`](@ref), [`wait`](@ref).
-
-"""
-release(cam::ScientificCamera, timeout::Float64 = typemax(Float64)) =
-    notimplemented(:wait)
