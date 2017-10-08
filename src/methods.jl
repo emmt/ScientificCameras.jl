@@ -360,8 +360,7 @@ yields an `Union` of the *concrete* pixel formats supported by the camera
 See also: [`setpixelformat!`](@ref), [`ScientificCameras.PixelFormat`](@ref).
 
 """
-supportedpixelformats(cam::ScientificCamera) =
-    Array{PixelFormat}(0)
+supportedpixelformats(cam::ScientificCamera) = Union{}
 
 """
     getpixelformat(cam) -> curpixfmt
