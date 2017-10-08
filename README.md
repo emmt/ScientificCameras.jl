@@ -21,12 +21,14 @@ images with a camera.
 
 ### Connection and configuration
 
-You must first import the general module and a specific camera model, say `SomeCameraModel`,
-from a specific frame grabber module, say `SomeFrameGrabber`:
+You must first import the methods from the general module (with pixel formats)
+and a specific camera model, say `SomeCameraModel`, from a specific frame
+grabber module, say `SomeFrameGrabber`:
 
 ```julia
-using ScientificCameras
-import SomeFrameGrabber: SomeCameraModel
+using ScientificCameras                  # import all methods of main module
+using ScientificCameras.PixelFormats     # import all pixel formats
+import SomeFrameGrabber: SomeCameraModel # import a specific camera model
 ```
 
 Second, you create an instance of the camera and connect it to the hardware by:
@@ -44,7 +46,7 @@ setspeed!(cam, 100, 0.005) # 100 frames per second, 5ms of exposure
 setgain!(cam, 1.0) # set the gain of the analog to digital conversion
 setbias!(cam, 0.0) # set the bias of the analog to digital conversion
 setgamma!(cam, 1.0) # set the gamma correction of the analog to digital conversion
-setdepth!(cam, 8) # set the number of bits per pixel
+setpixelformat!(cam, Monochrome{8}) # set the pixel format to monochrome 8 bits
 ```
 
 Note that you may choose different settings (for instance, a smaller ROI) and
@@ -168,7 +170,8 @@ A complete interface would extend the following methods:
 - `start`, `wait`, `release`, `stop` and `abort` for continuous acquisition.
 - `getfullwidth`, `getfullheight` for getting the full size of the sensor.
 - `getroi` and `setroi!` for the region of interest.
-- `getdepth` and `setdepth!` for the number of bits per pixels.
+- `getpixelformat`, `setpixelformat!` and `supportedpixelformats` for the pixel
+  format.
 - `getspeed`, `setspeed!` and `checkspeed` for the frame rate and exposure
   time.
 - `getgain` and `setgain!` for the gain of the analog to digital conversion.

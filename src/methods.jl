@@ -311,31 +311,85 @@ checkroi(cam::ScientificCamera, args...; kwds...) =
     checkroi(args..., getfullsize(cam; kdws...))
 
 """
-    getdepth(cam) -> depth
+    bitsperpixel(format)
 
-yields the number of bits per pixel for the camera `cam`.
+yields the number of bits per pixel of a given pixel format.  This method can
+also be applied to a camera, say `cam`, to get the current number of bits per
+pixel:
 
-See also: [`setdepth!`](@ref).
+    bitsperpixel(cam)
 
-"""
-getdepth(cam::ScientificCamera; kwds...) =
-    notimplemented(:getdepth)
-
-"""
-    setdepth!(cam, depth) -> depth
-
-sets the number of bits per pixel for the camera `cam`.  The actual value is
-returned (as an `Int`).
-
-See also: [`getdepth`](@ref).
+See also: [`equivalentbitstype`](@ref), [`ScientificCameras.PixelFormat`](@ref).
 
 """
-setdepth!(cam::ScientificCamera, depth; kwds...) =
-    setdepth!(cam, convert(Int, depth); kwds...)
+bitsperpixel(::PixelFormat{N}) where {N} = N
+bitsperpixel(::Type{T}) where {T<:PixelFormat{N}} where {N} = N
+bitsperpixel(cam::ScientificCamera) = bitsperpixel(getpixelformat(cam))
 
-# This version is meant to be extended.
-setdepth!(cam::ScientificCamera, depth::Int; kwds...) =
-    notimplemented(:setdepth!)
+"""
+    equivalentbitstype(format) -> T
+
+yields the closest equivalent bits type `T` corresponding to a given pixel
+format.  `Void` is returned when there is no known exact equivalence.
+
+See also: [`bitsperpixel`](@ref), [`ScientificCameras.PixelFormat`](@ref).
+
+"""
+equivalentbitstype(::Type{T}) where {T <: PixelFormat} = Void
+equivalentbitstype(::T) where {T <: PixelFormat} = equivalentbitstype(T)
+equivalentbitstype(::Type{Monochrome{8}}) = UInt8
+equivalentbitstype(::Type{Monochrome{16}}) = UInt16
+equivalentbitstype(::Type{Monochrome{32}}) = UInt32
+equivalentbitstype(::Type{BayerFormat{8}}) = UInt8
+equivalentbitstype(::Type{BayerFormat{16}}) = UInt16
+equivalentbitstype(::Type{BayerFormat{32}}) = UInt32
+equivalentbitstype(::Type{YUV422}) = YUV422BitsType
+equivalentbitstype(::Type{RGB{24}}) = RGB24BitsType
+equivalentbitstype(::Type{BGR{24}}) = BGR24BitsType
+equivalentbitstype(::Type{XRGB{32}}) = XRGB32BitsType
+equivalentbitstype(::Type{XBGR{32}}) = XBGR32BitsType
+equivalentbitstype(::Type{RGBX{32}}) = RGBX32BitsType
+equivalentbitstype(::Type{BGRX{32}}) = BGRX32BitsType
+
+"""
+    supportedpixelformats(cam) -> formats
+
+yields an `Union` of the *concrete* pixel formats supported by the camera
+`cam`.
+
+See also: [`setpixelformat!`](@ref), [`ScientificCameras.PixelFormat`](@ref).
+
+"""
+supportedpixelformats(cam::ScientificCamera) =
+    Array{PixelFormat}(0)
+
+"""
+    getpixelformat(cam) -> curpixfmt
+
+yields the current pixel format for the camera `cam`.
+
+See also: [`setpixelformat!`](@ref), [`supportedpixelformats`](@ref),
+          [`ScientificCameras.PixelFormat`](@ref).
+
+"""
+getpixelformat(cam::ScientificCamera) =
+    notimplemented(:getpixelformat)
+
+"""
+    setpixelformat!(cam, reqpixfmt) -> curpixfmt
+
+sets the pixel format for the camera `cam`.  On entry, the requested pixel
+format `reqpixfmt` can be "*vague*" in the sense that it is only a super-class
+like `ScientificCameras.Color{N}` to request a colored pixel format encoded on
+`N` bits per pixel, the number of bits may even be not specified.  The returned
+value `curpixfmt` is the actual pixel format which is more specific.
+
+See also: [`getpixelformat`](@ref), [`supportedpixelformats`](@ref),
+          [`ScientificCameras.PixelFormat`](@ref).
+
+"""
+setpixelformat!(cam::ScientificCamera, ::Type{T}) where {T <: PixelFormat} =
+    notimplemented(:setpixelformat!)
 
 """
     getspeed(cam) -> (fps, exp)

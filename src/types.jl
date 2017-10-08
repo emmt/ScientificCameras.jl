@@ -60,23 +60,241 @@ struct NotImplementedException <: Exception
    sym::Symbol
 end
 
-# Color types (note that the constructors always use red, green, blue order
-# whatever is the order in memory).
-#
-# (FIXME: use Julia package ColorTypes at https://github.com/JuliaGraphics/ColorTypes.jl)
-struct RGB{T}
-    r::T
-    g::T
-    b::T
-    RGB{T}(r, g, b) where {T} = new{T}(r, g, b)
+#------------------------------------------------------------------------------
+# PIXEL FORMATS AND EQUIVALENT BITS TYPES
+
+# Pixel format are in a separate module so that it is easier to specifically
+# import their defintions.
+
+module PixelFormats
+
+export
+    PixelFormat,
+    Monochrome,
+    ColorFormat,
+    RGB,
+    RGB24BitsType,
+    BGR,
+    BGR24BitsType,
+    XRGB,
+    XRGB32BitsType,
+    XBGR,
+    XBGR32BitsType,
+    RGBX,
+    RGBX32BitsType,
+    BGRX,
+    BGRX32BitsType,
+    BayerFormat,
+    BayerRGGB,
+    BayerGRBG,
+    BayerBGGR,
+    BayerBGGR,
+    YUV422,
+    YUV422BitsType
+
+"""
+
+`ScientificCameras.PixelFormat{N}` is the super-type of the various pixel
+formats and is parameterized by `N` the number of bits per pixel.
+
+Actual pixel formats are concrete sub-types of `PixelFormat{N}`.  The type
+hierarchy is:
+
+    PixelFormat{N} (abstract)
+     |- Monochrome{N} (concrete)
+     `- ColorFormat{N} (abstract)
+         |- RGB{N} (concrete)
+         |- BGR{N} (concrete)
+         |- XRGB{N} (concrete)
+         |- XBGR{N} (concrete)
+         |- RGBX{N} (concrete)
+         |- BGRX{N} (concrete)
+         |- BayerFormat{N} (abstract)
+         |   |- BayerRGGB{N} (concrete)
+         |   |- BayerGRBG{N} (concrete)
+         |   |- BayerBGGR{N} (concrete)
+         |   `- BayerBGGR{N} (concrete)
+         `- YUV422 (concrete)
+       (etc.)
+
+Note that *concrete* types (the leaves of the above tree) are all singletons.
+This system forbids to have concrete definitions which provide an equivalent
+Julia *bits*, that is *plain data*, type.  This is not really an isssue since
+pixel formats are just meant to describe the pixel format used by a camera, not
+to provide Julia equivalent bits types.  To get the closest equivalent bits
+type (when it exists), call:
+
+    equivalentbitstype(format)
+
+which returns `Void` when there is no possible exact equivalence.
+
+See also: [`equivalentbitstype`](@ref), [`bitsperpixel`](@ref),
+          [`ScientificCameras.Monochrome`](@ref),
+          [`ScientificCameras.ColorFormat`](@ref).
+
+"""
+abstract type PixelFormat{N} end
+
+"""
+
+`ScientificCameras.Monochrome{N}` is a monochrome pixel format where each pixel
+is encoded with `N` bits.
+
+See also: [`ScientificCameras.PixelFormat`](@ref).
+
+"""
+struct Monochrome{N} <: PixelFormat{N}; end
+
+"""
+
+`ScientificCameras.ColorFormat{N}` is the super-type of colored pixel formats
+where each pixel is encoded with `N` bits.
+
+See also: [`ScientificCameras.PixelFormat`](@ref).
+
+"""
+abstract type ColorFormat{N} <: PixelFormat{N} end
+
+"""
+
+`ScientificCameras.BayerFormat{N}` is a colored pixel format where the color is
+encoded on 4 pixels (1 red, 2 green and 1 blue) each with `N` bits.  There are
+several *concrete* sub-types:
+
+- `BayerRGGB{N}` is Bayer format with the mask `['R' 'G'; 'G' 'B']`.
+- `BayerGRBG{N}` is Bayer format with the mask `['G' 'R'; 'B' 'G']`.
+- `BayerGBRG{N}` is Bayer format with the mask `['G' 'B'; 'R' 'G']`.
+- `BayerBGGR{N}` is Bayer format with the mask `['B' 'G'; 'G' 'R']`.
+
+See also: [`ScientificCameras.PixelFormat`](@ref),
+          [`ScientificCameras.ColorFormat`](@ref).
+
+"""
+abstract type BayerFormat{N} <: ColorFormat{N} end
+
+# Concrete sub-types.
+struct BayerRGGB{N} <: BayerFormat{N}; end
+struct BayerGRBG{N} <: BayerFormat{N}; end
+struct BayerGBRG{N} <: BayerFormat{N}; end
+struct BayerBGGR{N} <: BayerFormat{N}; end
+
+"""
+
+`ScientificCameras.RGB{N}` is a packed pixel color format where each pixel
+counts `N` bits and encodes the red, green and blue levels (in that order).
+
+See also: [`ScientificCameras.ColorFormat`](@ref),
+          [`ScientificCameras.BGR`](@ref).
+
+"""
+struct RGB{N} <: ColorFormat{N}; end
+
+"""
+
+`ScientificCameras.BGR{N}` is a packed pixel color format where each pixel
+counts `N` bits and encodes the blue, green and red levels (in that order).
+
+See also: [`ScientificCameras.ColorFormat`](@ref),
+          [`ScientificCameras.RGB`](@ref).
+
+"""
+struct BGR{N} <: ColorFormat{N}; end
+
+"""
+
+`ScientificCameras.XRGB{N}` is a packed pixel color format where each pixel
+counts `N` bits and encodes some padding (the "X") followed by the red, green
+and blue levels (in that order).
+
+`ScientificCameras.XBGR{N}`, `ScientificCameras.RGBX{N}` and
+`ScientificCameras.BGRX{N}` are similar packed pixel color formats with
+different ordering of the components in memory.
+
+See also: [`ScientificCameras.ColorFormat`](@ref),
+          [`ScientificCameras.BGR`](@ref).
+
+"""
+struct XRGB{N} <: ColorFormat{N}; end
+struct XBGR{N} <: ColorFormat{N}; end
+struct RGBX{N} <: ColorFormat{N}; end
+struct BGRX{N} <: ColorFormat{N}; end
+
+@doc @doc(XRGB) XBGR
+@doc @doc(XRGB) RGBX
+@doc @doc(XRGB) BGRX
+
+# Note that whatever the ordering of values in memory, the constructors use
+# always the same order: R, G, B and, possibly, X (which defaults to 0).
+struct RGB24BitsType
+    r::UInt8
+    g::UInt8
+    b::UInt8
+    RGB24BitsType(r, g, b) = new(r, g, b)
 end
-struct BGR{T}
-    b::T
-    g::T
-    r::T
-    BGR{T}(r, g, b) where {T} = new{T}(b, g, r)
+
+struct BGR24BitsType
+    b::UInt8
+    g::UInt8
+    r::UInt8
+    BGR24BitsType(r, g, b) = new(b, g, r)
 end
-const RGB24 = RGB{UInt8}
-const RGB48 = RGB{UInt16}
-const BGR24 = BGR{UInt8}
-const BGR48 = BGR{UInt16}
+
+struct XRGB32BitsType
+    x::UInt8
+    r::UInt8
+    g::UInt8
+    b::UInt8
+    XRGB32BitsType(r, g, b, x = zero(UInt8)) = new(x, r, g, b)
+end
+
+struct XBGR32BitsType
+    x::UInt8
+    b::UInt8
+    g::UInt8
+    r::UInt8
+    XBGR32BitsType(r, g, b, x = zero(UInt8)) = new(x, b, g, r)
+end
+
+struct RGBX32BitsType
+    r::UInt8
+    g::UInt8
+    b::UInt8
+    x::UInt8
+    RGBX32BitsType(r, g, b, x = zero(UInt8)) = new(r, g, b, x)
+end
+
+struct BGRX32BitsType
+    b::UInt8
+    g::UInt8
+    r::UInt8
+    x::UInt8
+    BGRX32BitsType(r, g, b, x = zero(UInt8)) = new(b, g, r, x)
+end
+
+"""
+
+`YUV422` is a 32-bit packed color format which encodes Y, U and V color
+components in a macro pixel with 4 bytes U, Y0, V and Y1 (in that order) where
+Y0 and Y1 are the lowest and highest significant bytes of Y.
+
+See http://www.fourcc.org/yuv.php and
+https://stackoverflow.com/questions/8561185/yuv-422-yuv-420-yuv-444
+
+The equivalent Julia bits type is given by `Y422BitsType`.
+
+See also: [`bitsperpixel`](@ref), [`equivalentbitstype`](@ref),
+          [`ScientificCameras.PixelFormat`](@ref).
+
+"""
+struct YUV422 <: ColorFormat{32}; end
+
+struct YUV422BitsType
+    U  :: UInt8
+    Y0 :: UInt8
+    V  :: UInt8
+    Y1 :: UInt8
+end
+
+end # module PixelFormats
+
+using .PixelFormats
