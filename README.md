@@ -53,10 +53,14 @@ Note that you may choose different settings (for instance, a smaller ROI) and
 that not all these settings may be available for the considered camera.  To
 figure out the current settings, you can use `get*` methods (for instance,
 `getspeed(cam)` yields the current number of frames per second and exposure
-time).  As a general rule, the `set*!(cam, ...)` methods shall return the
-actual settings which may be only a proxy of what has been required and these
-methods shall throw a `ScientificCameras.NotImplementedException` when a given
-setting is not implemented (so that you can specifically catch it).
+time).  In general, the `set*!(cam, ...)` methods may be only able to
+approximately set the requested value(s) (*e.g.* because of rounding, of
+hardware limitations, *etc.*), it is therefore a good practice to check actual
+values by calling the corresponding `get*(cam)` methods.  However, when a given
+setting is not implemented or when the settings are grossly wrong, the
+`set*!(cam, ...)` methods shall throw a
+`ScientificCameras.NotImplementedException` (so that you can specifically catch
+it).
 
 
 ### Reading a given number of images

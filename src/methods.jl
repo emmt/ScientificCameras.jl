@@ -402,10 +402,10 @@ See also: [`setspeed!`](@ref).
 getspeed(cam::ScientificCamera; kwds...) = notimplemented(:getspeed)
 
 """
-    setspeed!(cam, fps, exp) -> (fps, exp)
+    setspeed!(cam, fps, exp)
 
 sets the number of frames per second and exposure duration (in seconds) for the
-camera `cam`.  The actual values are returned (as a tuple of two `Float64`).
+camera `cam`.
 
 See also: [`getspeed`](@ref), [`checkspeed`](@ref).
 
@@ -455,10 +455,10 @@ getgain(cam::ScientificCamera; kwds...) =
     notimplemented(:getgain)
 
 """
-    setgain!(cam, gain) -> gain
+    setgain!(cam, gain)
 
 sets the gain of the analog to digital conversion of pixel values for the
-camera `cam`.  The actual value is returned (as a `Float64`).
+camera `cam`.
 
 See also: [`getgain`](@ref), [`setbias!`](@ref), [`setgamma!`](@ref).
 
@@ -483,10 +483,10 @@ getbias(cam::ScientificCamera; kwds...) =
     notimplemented(:getbias)
 
 """
-    setbias!(cam, bias) -> bias
+    setbias!(cam, bias)
 
 sets the bias of the analog to digital conversion of pixel values for the
-camera `cam`.  The actual value is returned (as a `Float64`).
+camera `cam`.
 
 See also: [`getbias`](@ref).
 
@@ -511,10 +511,10 @@ getgamma(cam::ScientificCamera; kwds...) =
     notimplemented(:getgamma)
 
 """
-    setgamma!(cam, gamma) -> gamma
+    setgamma!(cam, gamma)
 
 sets the gamma correction factor of the analog to digital conversion of pixel
-values by the camera `cam`.  The actual value is returned (as a `Float64`).
+values by the camera `cam`.
 
 See also: [`getgamma`](@ref).
 
