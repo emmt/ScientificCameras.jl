@@ -90,7 +90,7 @@ loop like:
 ```julia
 bufs = start(cam, UInt16, 4) # start continuous acquisition
 while true
-    index, number, overflows = wait(cam) # wait for next frame
+    index = wait(cam, Inf) # wait for next frame (waiting forever)
     buf = bufs[index] # get image buffer
     ... # process the image buffer
     release(cam) # frame buffer is again available for acquisition
