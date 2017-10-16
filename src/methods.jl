@@ -53,18 +53,18 @@ Julia array.  For instance, the type of `imgs` is `Array{Array{T,2},1}`.
 See also: [`open`](@ref), [`start`](@ref).
 
 """
-read(cam::ScientificCamera, ::Type{T}, n::Integer) where {T} =
-    read(cam, T, convert(Int, n))
+read(cam::ScientificCamera, ::Type{T}, n::Integer; kwds...) where {T} =
+    read(cam, T, convert(Int, n); kwds...)
 
-read(cam::ScientificCamera, n::Integer) =
-    read(cam, convert(Int, n))
+read(cam::ScientificCamera, n::Integer; kwds...) =
+    read(cam, convert(Int, n); kwds...)
 
 # This version is meant to be extended.
-read(cam::ScientificCamera, ::Type{T}, n::Int = 1) where {T} =
+read(cam::ScientificCamera, ::Type{T}, n::Int = 1; kwds...) where {T} =
     notimplemented(:read)
 
 # This version is meant to be extended.
-read(cam::ScientificCamera, n::Int = 1) =
+read(cam::ScientificCamera, n::Int = 1; kwds...) =
     notimplemented(:read)
 
 """
@@ -117,22 +117,23 @@ abort(cam::ScientificCamera) =
     notimplemented(:stop)
 
 """
-    wait(cam [, timeout]) -> index, number, overflows
+    wait(cam, timeout, drop = false) -> index
 
-waits for the next frame (but not longer than `timeout` seconds if specified)
-from camera `cam` and returns the index in the image buffers, the frame number
-and the number of overflows (or acquisition errors) so far.
+waits for the next frame from camera `cam` but not longer than `timeout`
+seconds and returns the index of the next frame in the image buffers or `0` if
+timeout occured.  If `drop` is `true`, unprocessed frames are discarded, *i.e.*
+only the newest frame is returned.
 
 If properly implemented, waiting for a frame should consume no CPU.
 
 See also: [`start`](@ref), [`release`](@ref).
 
 """
-wait(cam::ScientificCamera, timeout) =
-    wait(cam, convert(Float64, timeout))
+wait(cam::ScientificCamera, timeout, drop::Bool = false) =
+    wait(cam, convert(Float64, timeout), drop)
 
 # This version is meant to be extended.
-wait(cam::ScientificCamera, timeout::Float64 = typemax(Float64)) =
+wait(cam::ScientificCamera, timeout::Float64, drop::Bool) =
     notimplemented(:wait)
 
 """
