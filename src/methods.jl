@@ -212,9 +212,9 @@ getroi(cam::ScientificCamera; kwds...) =
     getfullsize(cam)   -> (fullwidth, fullheight)
 
 respectively yield the maximum width, height and dimensions for the images
-captured by the camera `cam`.
+captured by the camera `cam` and assuming no subsampling.
 
-See also: [`setroi!`](@ref).
+See also: [`setroi!`](@ref), [`getdecimation`](@ref).
 
 """
 getfullwidth(cam::ScientificCamera) = notimplemented(:getfullwidth)
@@ -223,6 +223,37 @@ getfullsize(cam::ScientificCamera) = (getfullwidth(cam), getfullheight(cam))
 
 @doc @doc(getfullwidth) getfullheight
 @doc @doc(getfullwidth) getfullsize
+
+"""
+    getdecimation(cam) = (xsub, ysub)
+
+yields the actual decimation factors (in pixels along each dimension) for
+camera `cam`.  Note that the maximum image size is `div(fullwidth,xsub)` by
+`div(fullheight,ysub)` where `fullwidth` and `fullheight` are the dimensions
+returned by `getfullsize(cam)`.
+
+See also: [`setdecimation!`](@ref), [`getfullsize`](@ref), [`getroi`](@ref).
+
+"""
+getdecimation(cam::ScientificCamera) = notimplemented(:getdecimation)
+
+"""
+    setdecimation!(cam, xsub, ysub)
+
+Sets the decimation factors (in pixels along each dimension) for camera `cam`.
+Note that the maximum image size will be `div(fullwidth,xsub)` by
+`div(fullheight,ysub)` where `fullwidth` and `fullheight` are the dimensions
+returned by `getfullsize(cam)`.
+
+See also: [`getdecimation`](@ref), [`getfullsize`](@ref), [`getroi`](@ref).
+
+"""
+setdecimation!(cam::ScientificCamera, xsub, ysub) =
+    setdecimation!(cam, convert(Int, xsub), convert(Int, ysub))
+
+# This version is meant to be extended.
+setdecimation!(cam::ScientificCamera, xsub::Int, ysub::Int) =
+    notimplemented(:setdecimation!)
 
 """
 

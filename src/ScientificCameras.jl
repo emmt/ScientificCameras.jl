@@ -25,6 +25,8 @@ export
     abort,
     wait,
     release,
+    getdecimation,
+    setdecimation!,
     getfullsize,
     getfullwidth,
     getfullheight,

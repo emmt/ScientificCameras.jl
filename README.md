@@ -40,6 +40,7 @@ cam = open(SomeCameraModel)
 Third, you want to configure the camera:
 
 ```julia
+setdecimation!(cam, 1, 1) # no sub-sampling
 fullwidth, fullheight = getfullsize(cam) # get the full sensor size
 setroi!(cam, 0, 0, fullwidth, fullsize) # set region of interest (ROI)
 setspeed!(cam, 100, 0.005) # 100 frames per second, 5ms of exposure
@@ -172,6 +173,7 @@ A complete interface would extend the following methods:
 - `close` for disconnecting a camera from the hardware.
 - `read` for reading a given number of images.
 - `start`, `wait`, `release`, `stop` and `abort` for continuous acquisition.
+- `getdecimation` and `setdecimation!` for sub-sampling.
 - `getfullwidth`, `getfullheight` for getting the full size of the sensor.
 - `getroi` and `setroi!` for the region of interest.
 - `getpixelformat`, `setpixelformat!` and `supportedpixelformats` for the pixel
