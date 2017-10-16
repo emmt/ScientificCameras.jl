@@ -63,35 +63,6 @@ end
 #------------------------------------------------------------------------------
 # PIXEL FORMATS AND EQUIVALENT BITS TYPES
 
-# Pixel format are in a separate module so that it is easier to specifically
-# import their defintions.
-
-module PixelFormats
-
-export
-    PixelFormat,
-    Monochrome,
-    ColorFormat,
-    RGB,
-    RGB24BitsType,
-    BGR,
-    BGR24BitsType,
-    XRGB,
-    XRGB32BitsType,
-    XBGR,
-    XBGR32BitsType,
-    RGBX,
-    RGBX32BitsType,
-    BGRX,
-    BGRX32BitsType,
-    BayerFormat,
-    BayerRGGB,
-    BayerGRBG,
-    BayerBGGR,
-    BayerBGGR,
-    YUV422,
-    YUV422BitsType
-
 """
 
 `ScientificCameras.PixelFormat{N}` is the super-type of the various pixel
@@ -295,6 +266,59 @@ struct YUV422BitsType
     Y1 :: UInt8
 end
 
-end # module PixelFormats
+# Pixel formats are imported in a separate module and then exported so that it
+# is easier to import all pixel formats with:
+#
+#    using ScientificCameras.PixelFormats
 
-using .PixelFormats
+module PixelFormats
+
+import
+    ..PixelFormat,
+    ..Monochrome,
+    ..ColorFormat,
+    ..RGB,
+    ..RGB24BitsType,
+    ..BGR,
+    ..BGR24BitsType,
+    ..XRGB,
+    ..XRGB32BitsType,
+    ..XBGR,
+    ..XBGR32BitsType,
+    ..RGBX,
+    ..RGBX32BitsType,
+    ..BGRX,
+    ..BGRX32BitsType,
+    ..BayerFormat,
+    ..BayerRGGB,
+    ..BayerGRBG,
+    ..BayerBGGR,
+    ..BayerBGGR,
+    ..YUV422,
+    ..YUV422BitsType
+
+export
+    PixelFormat,
+    Monochrome,
+    ColorFormat,
+    RGB,
+    RGB24BitsType,
+    BGR,
+    BGR24BitsType,
+    XRGB,
+    XRGB32BitsType,
+    XBGR,
+    XBGR32BitsType,
+    RGBX,
+    RGBX32BitsType,
+    BGRX,
+    BGRX32BitsType,
+    BayerFormat,
+    BayerRGGB,
+    BayerGRBG,
+    BayerBGGR,
+    BayerBGGR,
+    YUV422,
+    YUV422BitsType
+
+end # module PixelFormats
