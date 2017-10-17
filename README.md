@@ -37,7 +37,7 @@ Second, you create an instance of the camera and connect it to the hardware by:
 cam = open(SomeCameraModel)
 ```
 
-Third, you want to configure the camera:
+Third, you configure the camera:
 
 ```julia
 setdecimation!(cam, 1, 1) # no sub-sampling
@@ -52,16 +52,16 @@ setpixelformat!(cam, Monochrome{8}) # set the pixel format to monochrome 8 bits
 
 Note that you may choose different settings (for instance, a smaller ROI) and
 that not all these settings may be available for the considered camera.  To
-figure out the current settings, you can use `get*` methods (for instance,
+figure out the current settings, you can use `get*` methods.  For instance,
 `getspeed(cam)` yields the current number of frames per second and exposure
-time).  In general, the `set*!(cam, ...)` methods may be only able to
+time.  In general, the `set*!(cam, ...)` methods may be only able to
 approximately set the requested value(s) (*e.g.* because of rounding, of
 hardware limitations, *etc.*), it is therefore a good practice to check actual
 values by calling the corresponding `get*(cam)` methods.  However, when a given
 setting is not implemented or when the settings are grossly wrong, the
-`set*!(cam, ...)` methods shall throw a
-`ScientificCameras.NotImplementedException` (so that you can specifically catch
-it).
+`set*!(cam, ...)` methods shall throw a scpecific exception such as
+`ScientificCameras.NotImplementedException` for unimplemented features (so that
+you can specifically catch it).
 
 
 ### Reading a given number of images
@@ -74,12 +74,11 @@ like:
 imgs = read(cam, UInt8, 10)
 ```
 
-which reads 10 images of pixel type `UInt8` and return them as a vector of
-images.  Each image is a Julia array whose element type is the pixel type and
-the dimensions those of the chosen region of interest (ROI).  It is however
-possible that the first dimension (the *width*) be different to that of the ROI
-to accommodate for different sizes for the pixel format used by the camera and
-the chosen pixel type.
+which reads 10 images of element type `UInt8` and return them as a vector of
+images.  Each image is a Julia array whose dimensions are those of the chosen
+region of interest (ROI).  It is however possible that the first dimension (the
+*width*) be different to that of the ROI to accommodate for different sizes for
+the pixel format used by the camera and the chosen element type.
 
 
 ### Continuous acquisition
@@ -118,6 +117,97 @@ releasing resources when the camera instance is no longer referenced and
 eventually finalized by Julia's garbage collector.  It may be necessary to
 close the camera to disconnect it from the hardware so that it is immediately
 available for some other purposes.
+
+
+### Pixel formats
+
+`ScientificCameras.PixelFormat{N}` is the super-type of the various pixel
+formats and is parameterized by `N` the number of bits per pixel.  In order to
+avoid prefixing pixel formats by ``ScientificCameras.`, you may add:
+
+    using ScientificCameras.PixelFormats
+
+to your code, as `using ScientificCameras` only imports public methods defined
+by the package (no types).  If what follows, it is assumed that
+`ScientificCameras.PixelFormats` has been imported with `using`.
+
+Actual pixel formats are concrete sub-types of `PixelFormat{N}`.  The type
+hierarchy is:
+
+    PixelFormat{N} (abstract)
+     |- Monochrome{N} (concrete)
+     `- ColorFormat{N} (abstract)
+         |- RGB{N} (concrete)
+         |- BGR{N} (concrete)
+         |- XRGB{N} (concrete)
+         |- XBGR{N} (concrete)
+         |- RGBX{N} (concrete)
+         |- BGRX{N} (concrete)
+         |- BayerFormat{N} (abstract)
+         |   |- BayerRGGB{N} (concrete)
+         |   |- BayerGRBG{N} (concrete)
+         |   |- BayerBGGR{N} (concrete)
+         |   `- BayerBGGR{N} (concrete)
+         `- YUV422 (concrete)
+       (etc.)
+
+Note that *concrete* types (the leaves of the above tree) are all singletons.
+This system forbids to have concrete definitions which provide an equivalent
+Julia *bits*, that is *plain data*, type.  This is not really an isssue since
+pixel formats are just meant to describe the pixel format used by a camera, not
+to provide Julia equivalent bits types.  To get the equivalent bits type (when
+it exists), call:
+
+    equivalentbitstype(format)
+
+which returns `Void` when there is no possible exact equivalence.
+
+
+### Choosing the pixel format
+
+There are two pixel formats: one, say `campix`, corresponding to the data sent
+by the camera and the other, say `bufpix`, corresponding to the pixels in the
+captured images.  To retrieve these pixel formats, just do:
+
+    campix, bufpix = getpixelformat(cam)
+
+To change the pixel format(s), do:
+
+    setpixelformat!(cam, pix)
+
+to use the same pixel format for the camera and the captured images, or:
+
+    setpixelformat!(cam, campix, bufpix)
+
+to set possibly different pixel formats.  Not all hardware support all
+combination of pixel formats.
+
+Because not all pixel formats are exactly representable by a Julia bits type,
+the type of the elements of the Julia arrays used as image buffers has also to
+be taken into account.  When capturing images, the type, say `T`, of the
+elements of the Julia arrays used as image buffers may be specified as follows:
+
+    imgs = read(cam, T, n)
+
+for sequential acquisition of `n` images, or:
+
+    imgs = start(cam, T, n)
+
+for continuous acquisition using `n` image buffers.  An image buffer,
+`imgs[k]`, is a regular Julia 2D array whose element type is `T`, whose first
+dimension is set so as to store the binary data of a single line of the
+captured image (with pixel format `bufpix`) with possible padding, and whose
+second dimension is the number of lines in the captured image.
+
+If the type `T` of the array elements is not specified, the method
+`getcapturebitstype(cam)` is used to find a Julia bits type corresponding to
+the image buffers pixel format `bufpix`.  If there are no equivalent bits
+types, `getcapturebitstype(cam)` yields `UInt8` (*i.e.* image buffers are
+stored as 2D byte arrays in Julia).
+
+To avoid unpacking pixel values, it is advisable to choose a pixel format,
+`bufpix`, for the image buffers which is close to the camera pixel format
+`campix` while having an exact equivalent Julia bits type.
 
 
 ## Implementing a concrete interface

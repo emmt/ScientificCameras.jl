@@ -92,8 +92,8 @@ Note that *concrete* types (the leaves of the above tree) are all singletons.
 This system forbids to have concrete definitions which provide an equivalent
 Julia *bits*, that is *plain data*, type.  This is not really an isssue since
 pixel formats are just meant to describe the pixel format used by a camera, not
-to provide Julia equivalent bits types.  To get the closest equivalent bits
-type (when it exists), call:
+to provide Julia equivalent bits types.  To get the equivalent bits type (when
+it exists), call:
 
     equivalentbitstype(format)
 

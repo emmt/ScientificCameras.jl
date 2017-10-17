@@ -35,6 +35,7 @@ export
     checkroi,
     getpixelformat,
     setpixelformat!,
+    getcapturebitstype,
     supportedpixelformats,
     bitsperpixel,
     equivalentbitstype,

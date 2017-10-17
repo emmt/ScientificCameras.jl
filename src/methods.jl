@@ -44,27 +44,23 @@ close(cam::ScientificCamera) =
     read(cam, [T,] n = 1) -> imgs
 
 reads `n` images from camera `cam`.  Optional argument `T` is the element type
-of the returned images.  If the type is not specified, it may be determined
-automatically (not all interfaces can do that and not all interfaces can cope
-with arbitrary pixel types).  The result is a vector of images: `imgs[1]` is
-the first image, `imgs[2]` is the second image and so on.  Each image is a 2D
-Julia array.  For instance, the type of `imgs` is `Array{Array{T,2},1}`.
+of the returned images.  If the type is not specified, it is determined
+automatically by `getcapturebitstype(cam)`.  The result is a vector of images:
+`imgs[1]` is the first image, `imgs[2]` is the second image and so on.  Each
+image is a 2D Julia array.  For instance, the type of `imgs` is
+`Array{Array{T,2},1}`.
 
-See also: [`open`](@ref), [`start`](@ref).
+See also: [`open`](@ref), [`start`](@ref), [`equivalentbitstype`](@ref).
 
 """
-read(cam::ScientificCamera, ::Type{T}, n::Integer; kwds...) where {T} =
+read(cam::ScientificCamera, ::Type{T}, n::Integer = 1; kwds...) where {T} =
     read(cam, T, convert(Int, n); kwds...)
 
-read(cam::ScientificCamera, n::Integer; kwds...) =
-    read(cam, convert(Int, n); kwds...)
+read(cam::ScientificCamera, n::Integer = 1; kwds...) =
+    read(cam, getcapturebitstype(cam), convert(Int, n); kwds...)
 
 # This version is meant to be extended.
-read(cam::ScientificCamera, ::Type{T}, n::Int = 1; kwds...) where {T} =
-    notimplemented(:read)
-
-# This version is meant to be extended.
-read(cam::ScientificCamera, n::Int = 1; kwds...) =
+read(cam::ScientificCamera, ::Type{T}, n::Int; kwds...) where {T} =
     notimplemented(:read)
 
 """
@@ -72,24 +68,22 @@ read(cam::ScientificCamera, n::Int = 1; kwds...) =
 
 starts continuous acquisition with camera `cam` using `n` image buffers which
 are returned.  Optional argument `T` is the element type of the returned
-images.  The result is a vector of images, each image is a 2D Julia array.
+images.  If the type is not specified, it is determined automatically by
+`getcapturebitstype(cam)`.  The result is a vector of images, each image is a
+2D Julia array.
 
 See also: [`open`](@ref), [`read`](@ref), [`wait`](@ref), [`stop`](@ref),
           [`abort`](@ref).
 
 """
-start(cam::ScientificCamera, ::Type{T}, n::Integer) where {T} =
-    start(cam, T, convert(Int, n))
+start(cam::ScientificCamera, ::Type{T}, n::Integer = 1; kwds...) where {T} =
+    start(cam, T, convert(Int, n); kwds...)
 
-start(cam::ScientificCamera, n::Integer) =
-    start(cam, convert(Int, n))
-
-# This version is meant to be extended.
-start(cam::ScientificCamera, ::Type{T}, n::Int = 1) where {T} =
-    notimplemented(:start)
+start(cam::ScientificCamera, n::Integer = 1; kwds...) =
+    start(cam, getcapturebitstype(cam), convert(Int, n); kwds...)
 
 # This version is meant to be extended.
-start(cam::ScientificCamera, n::Int = 1) =
+start(cam::ScientificCamera, ::Type{T}, n::Int; kwds...) where {T} =
     notimplemented(:start)
 
 """
@@ -384,20 +378,25 @@ equivalentbitstype(::Type{RGBX{32}}) = RGBX32BitsType
 equivalentbitstype(::Type{BGRX{32}}) = BGRX32BitsType
 
 """
-    supportedpixelformats(cam) -> formats
+    supportedpixelformats(cam, buf = false) -> formats
 
-yields an `Union` of the *concrete* pixel formats supported by the camera
-`cam`.
+yields an `Union` of the *concrete* pixel formats supported by the camera `cam`
+or by the capture image buffers if second argument is true.
 
 See also: [`setpixelformat!`](@ref), [`ScientificCameras.PixelFormat`](@ref).
 
 """
-supportedpixelformats(cam::ScientificCamera) = Union{}
+supportedpixelformats(cam::ScientificCamera, buf::Bool) = Union{}
+
+supportedpixelformats(cam::ScientificCamera) =
+    supportedpixelformats(cam, false)
+
 
 """
-    getpixelformat(cam) -> curpixfmt
+    getpixelformat(cam) -> (campix, bufpix)
 
-yields the current pixel format for the camera `cam`.
+yields the current pixel formats for the camera `cam` and for the image
+buffers.
 
 See also: [`setpixelformat!`](@ref), [`supportedpixelformats`](@ref),
           [`ScientificCameras.PixelFormat`](@ref).
@@ -407,20 +406,46 @@ getpixelformat(cam::ScientificCamera) =
     notimplemented(:getpixelformat)
 
 """
-    setpixelformat!(cam, reqpixfmt) -> curpixfmt
+    setpixelformat!(cam, campix, bufpix=campix)
 
-sets the pixel format for the camera `cam`.  On entry, the requested pixel
-format `reqpixfmt` can be "*vague*" in the sense that it is only a super-class
-like `ScientificCameras.Color{N}` to request a colored pixel format encoded on
-`N` bits per pixel, the number of bits may even be not specified.  The returned
-value `curpixfmt` is the actual pixel format which is more specific.
+sets the pixel format for the camera `cam` and for captured image buffers.
+
+On entry, the requested pixel format `reqpixfmt` can be "*vague*" in the sense
+that it is only a super-class like `ScientificCameras.Color{N}` to request a
+colored pixel format encoded on `N` bits per pixel, the number of bits may even
+be not specified.
 
 See also: [`getpixelformat`](@ref), [`supportedpixelformats`](@ref),
+          [`getcapturebitstype`](@ref),
           [`ScientificCameras.PixelFormat`](@ref).
 
 """
-setpixelformat!(cam::ScientificCamera, ::Type{T}) where {T <: PixelFormat} =
+setpixelformat!(cam::ScientificCamera, ::Type{C}) where {C <: PixelFormat} =
+    setpixelformat!(cam, C, C)
+
+function setpixelformat!(cam::ScientificCamera,
+                         ::Type{C}, ::Type{B}) where {C <: PixelFormat,
+                                                      B <: PixelFormat}
     notimplemented(:setpixelformat!)
+end
+
+"""
+    getcapturebitstype(cam) -> T
+
+yields the bits type which is used by default to capture images with camera
+`cam`.
+
+See also: [`getpixelformat`](@ref), [`setpixelformat!`](@ref),
+          [`equivalentbitstype`](@ref).
+
+
+"""
+function getcapturebitstype(cam::ScientificCamera)
+    # Default implementation.
+    bufpix = getpixelformat(cam)[2]
+    T = equivalentbitstype(bufpix)
+    return (T == Void ? UInt8 : T)
+end
 
 """
     getspeed(cam) -> (fps, exp)
