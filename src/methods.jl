@@ -337,18 +337,19 @@ checkroi(cam::ScientificCamera, args...; kwds...) =
     checkroi(args..., getfullsize(cam; kdws...))
 
 """
-    bitsperpixel(format)
+    bitsperpixel(fmt)
 
-yields the number of bits per pixel of a given pixel format.  This method can
-also be applied to a camera, say `cam`, to get the current number of bits per
-pixel:
+yields the number of bits per pixel of a given pixel format.  If `fmt` does not
+specify the number of bits per pixel, 0 is returned.  This method can also be
+applied to a camera, say `cam`, to get the current number of bits per pixel:
 
     bitsperpixel(cam)
 
 See also: [`equivalentbitstype`](@ref), [`ScientificCameras.PixelFormat`](@ref).
 
 """
-bitsperpixel(::PixelFormat{N}) where {N} = N
+bitsperpixel(::T) where {T <: PixelFormat} = bitsperpixel(T)
+bitsperpixel(::Type{T}) where {T<:PixelFormat} = 0
 bitsperpixel(::Type{T}) where {T<:PixelFormat{N}} where {N} = N
 bitsperpixel(cam::ScientificCamera) = bitsperpixel(getpixelformat(cam))
 
