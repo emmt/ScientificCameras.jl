@@ -89,16 +89,13 @@ loop like:
 
 ```julia
 bufs = start(cam, UInt16, 4) # start continuous acquisition
-while true
+for number in 1:100
     index = wait(cam, Inf) # wait for next frame (waiting forever)
     buf = bufs[index] # get image buffer
     ... # process the image buffer
     release(cam) # frame buffer is again available for acquisition
-    if number > 100
-        abort(cam) # abort acquisition and exit the loop
-        break
-    end
 end
+abort(cam) # abort acquisition and exit the loop
 ```
 
 
