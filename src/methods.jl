@@ -219,7 +219,7 @@ getfullsize(cam::ScientificCamera) = (getfullwidth(cam), getfullheight(cam))
 @doc @doc(getfullwidth) getfullsize
 
 """
-    getdecimation(cam) = (xsub, ysub)
+    getdecimation(cam) -> (xsub, ysub)
 
 yields the actual decimation factors (in pixels along each dimension) for
 camera `cam`.  Note that the maximum image size is `div(fullwidth,xsub)` by
@@ -408,12 +408,11 @@ getpixelformat(cam::ScientificCamera) =
 """
     setpixelformat!(cam, campix, bufpix=campix)
 
-sets the pixel format for the camera `cam` and for captured image buffers.
-
-On entry, the requested pixel format `reqpixfmt` can be "*vague*" in the sense
-that it is only a super-class like `ScientificCameras.Color{N}` to request a
-colored pixel format encoded on `N` bits per pixel, the number of bits may even
-be not specified.
+sets the pixel formats for the camera `cam` and for captured image buffers.
+The requested pixel formats can be *vague* in the sense that it is only a
+super-class like `ScientificCameras.Color{N}` to request a colored pixel format
+encoded on `N` bits per pixel, the number of bits may even be not specified.
+Use `getpixelformat(cam)` to figure out actual concrete formats.
 
 See also: [`getpixelformat`](@ref), [`supportedpixelformats`](@ref),
           [`getcapturebitstype`](@ref),
