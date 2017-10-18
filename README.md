@@ -125,8 +125,8 @@ avoid prefixing pixel formats by ``ScientificCameras.`, you may add:
     using ScientificCameras.PixelFormats
 
 to your code, as `using ScientificCameras` only imports public methods defined
-by the package (no types).  If what follows, it is assumed that
-`ScientificCameras.PixelFormats` has been imported with `using`.
+by the package (no types).  In what follows, it is assumed that
+`ScientificCameras.PixelFormats` has been imported with `using` as shown above.
 
 Actual pixel formats are concrete sub-types of `PixelFormat{N}`.  The type
 hierarchy is:
@@ -170,9 +170,10 @@ captured images.  To retrieve these pixel formats, just do:
 
 To change the pixel format(s), do:
 
-    setpixelformat!(cam, pix)
+    setpixelformat!(cam, campix)
 
-to use the same pixel format for the camera and the captured images, or:
+to set the camera pixel format to `campix` and use a close approximation of
+`campix` for the captured images, or:
 
     setpixelformat!(cam, campix, bufpix)
 

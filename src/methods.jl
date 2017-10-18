@@ -407,13 +407,15 @@ getpixelformat(cam::ScientificCamera) =
     notimplemented(:getpixelformat)
 
 """
-    setpixelformat!(cam, campix, bufpix=campix)
+    setpixelformat!(cam, campix [, bufpix])
 
-sets the pixel formats for the camera `cam` and for captured image buffers.
-The requested pixel formats can be *vague* in the sense that it is only a
-super-class like `ScientificCameras.Color{N}` to request a colored pixel format
-encoded on `N` bits per pixel, the number of bits may even be not specified.
-Use `getpixelformat(cam)` to figure out actual concrete formats.
+sets the pixel formats for the camera `cam` and, possibly, for captured image
+buffers.  The requested pixel formats can be *vague* in the sense that it is
+only a super-class like `ScientificCameras.Color{N}` to request a colored pixel
+format encoded on `N` bits per pixel, the number of bits may even be not
+specified.  If not specified, the pixel format of captured image buffers is
+derived from the camera pixel format.  Use `getpixelformat(cam)` to figure out
+actual concrete formats.
 
 See also: [`getpixelformat`](@ref), [`supportedpixelformats`](@ref),
           [`getcapturebitstype`](@ref),
@@ -421,7 +423,7 @@ See also: [`getpixelformat`](@ref), [`supportedpixelformats`](@ref),
 
 """
 setpixelformat!(cam::ScientificCamera, ::Type{C}) where {C <: PixelFormat} =
-    setpixelformat!(cam, C, C)
+    notimplemented(:setpixelformat!)
 
 function setpixelformat!(cam::ScientificCamera,
                          ::Type{C}, ::Type{B}) where {C <: PixelFormat,
