@@ -59,7 +59,7 @@ mutable struct ROI
     width::Int
     height::Int
     ROI(xsub::Integer, ysub::Integer, xoff::Integer, yoff::Integer, width::Integer, height::Integer) =
-        new(xoff, yoff, width, height)
+        new(xsub, ysub, xoff, yoff, width, height)
     ROI(xoff::Integer, yoff::Integer, width::Integer, height::Integer) =
         new(1, 1, xoff, yoff, width, height)
     ROI(width::Integer, height::Integer) =
