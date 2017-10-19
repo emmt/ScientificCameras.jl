@@ -40,9 +40,8 @@ cam = open(SomeCameraModel)
 Third, you configure the camera:
 
 ```julia
-setdecimation!(cam, 1, 1) # no sub-sampling
+resetroi!(cam) # use full sensor are and no sub-sampling
 fullwidth, fullheight = getfullsize(cam) # get the full sensor size
-setroi!(cam, 0, 0, fullwidth, fullsize) # set region of interest (ROI)
 setspeed!(cam, 100, 0.005) # 100 frames per second, 5ms of exposure
 setgain!(cam, 1.0) # set the gain of the analog to digital conversion
 setbias!(cam, 0.0) # set the bias of the analog to digital conversion
@@ -62,6 +61,23 @@ setting is not implemented or when the settings are grossly wrong, the
 `set*!(cam, ...)` methods shall throw a scpecific exception such as
 `ScientificCameras.NotImplementedException` for unimplemented features (so that
 you can specifically catch it).
+
+
+### Region of interest
+
+The region of interest (ROI) is defined by 4 values:
+
+- `xoff`, `yoff` the horizontal and vertical offsets of the ROI in pixels
+  relative to the sensor area;
+
+- `width` and `height` the horizontal and vertical dimensions of the ROI in
+  macro-pixels.
+
+Macro-pixels are block of `xsub` by `yxsub` pixels where `xsub` and `yxsub` are
+the horizontal and vertical subsampling factors.  Note that some hardware may
+impose restrictions such as `xoff` and `yoff` being multiple of `xsub` and
+`yxsub` respectively.  These kind of restrictions cannot be compensated by the
+software.
 
 
 ### Reading a given number of images
@@ -261,7 +277,6 @@ A complete interface would extend the following methods:
 - `close` for disconnecting a camera from the hardware.
 - `read` for reading a given number of images.
 - `start`, `wait`, `release`, `stop` and `abort` for continuous acquisition.
-- `getdecimation` and `setdecimation!` for sub-sampling.
 - `getfullwidth`, `getfullheight` for getting the full size of the sensor.
 - `getroi` and `setroi!` for the region of interest.
 - `getpixelformat`, `setpixelformat!` and `supportedpixelformats` for the pixel

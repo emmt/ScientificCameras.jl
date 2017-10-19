@@ -24,35 +24,46 @@ abstract type ScientificCamera end
 
 `ROI` is a structure to store a region of interest (ROI), its fields are:
 
-- `xoff`:   Horizontal offset of the ROI relative to detector.
-- `yoff`:   Vertical offset of the ROI relative to detector.
-- `width`:  Width of the ROI.
-- `height`: Height of the ROI.
+- `xsub`:   Horizontal size of macro-pixels (in pixels).
+- `ysub`:   Vertical size of macro-pixels (in pixels).
+- `xoff`:   Horizontal offset in pixels of the ROI relative to the sensor.
+- `yoff`:   Vertical offset in pixels of the ROI relative to the sensor.
+- `width`:  Width in macro-pixels of the ROI.
+- `height`: Height in macro-pixels of the ROI.
 
-All fields are integer valued (of type `Int`) and given in pixels.  A ROI is
-constructed by:
+All fields are integer valued (of type `Int`).  A ROI is constructed by:
 
-    ROI(xoff, yoff, width, height)
+    ROI(xsub, ysub, xoff, yoff, width, height)
 
 or
 
+    ROI(xoff, yoff, width, height)
+
+which assumes macro-pixels of same size as pixels, or
+
     ROI(width, height)
 
-which assumes zero offsets.  Note that for efficiency reasons, there is no
-testing of the validity of the settings but you may use `checkroi` for that.
+which assumes macro-pixels of same size as pixels and zero offsets.  Note that
+for efficiency reasons, there is no testing of the validity of the settings but
+you may use `checkroi` for that.
 
-See also: [`getroi`](@ref), [`setroi!`](@ref), [`checkroi`](@ref).
+See also: [`getroi`](@ref), [`setroi!`](@ref), [`resetroi!`](@ref),
+          [`checkroi`](@ref).
 
 """
-struct ROI
+mutable struct ROI
+    xsub::Int
+    ysub::Int
     xoff::Int
     yoff::Int
     width::Int
     height::Int
-    ROI(xoff::Integer, yoff::Integer, width::Integer, height::Integer) =
+    ROI(xsub::Integer, ysub::Integer, xoff::Integer, yoff::Integer, width::Integer, height::Integer) =
         new(xoff, yoff, width, height)
+    ROI(xoff::Integer, yoff::Integer, width::Integer, height::Integer) =
+        new(1, 1, xoff, yoff, width, height)
     ROI(width::Integer, height::Integer) =
-        new(0, 0, width, height)
+        new(1, 1, 0, 0, width, height)
 end
 
 # Custom exception to report errors for non-extended methods.

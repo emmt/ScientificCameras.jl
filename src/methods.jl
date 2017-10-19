@@ -143,72 +143,14 @@ release(cam::ScientificCamera) =
     notimplemented(:wait)
 
 """
-    setroi!(cam, xoff, yoff, width, height)
-
-sets the region of interest (ROI) for the images acquired by the camera `cam`:
-`xoff` and `yoff` are the horizontal and vertical offsets of the ROI relative
-to the sensor (in pixels), `width` and `height` are the horizontal and vertical
-dimensions of the ROI (also in pixels).
-
-An alternative is:
-
-    setroi!(cam, roi)
-
-where the ROI is specified by an instance of the `ScientificCameras.ROI`
-structure.
-
-Note that this method throws an exception if the settings of the ROI cannot be
-axactly applied.  As a consequence, it does not return the actual ROI because
-it can only be identical to the requested one.
-
-See also: [`getroi`](@ref), [`checkroi`](@ref),
-          [`ScientificCameras.ROI`](@ref).
-
-"""
-function setroi!(cam::ScientificCamera, xoff::Integer, yoff::Integer,
-                 width::Integer, height::Integer; kwds...)
-    setroi!(cam, ROI(xoff, yoff, width, height); kwds...)
-end
-
-# This version is meant to be extended.
-setroi!(cam::ScientificCamera, roi::ROI; kwds...) =
-    notimplemented(:setroi!)
-
-"""
-
-    getroi(cam) -> (xoff, yoff, width, height)
-
-yields the current region of interest (ROI) for the images acquired by the
-camera `cam`.  The result is a tuple of 4 values: `xoff` and `yoff` are the
-horizontal and vertical offsets of the ROI relative to the sensor, `width` and
-`height` are the horizontal and vertical dimensions of the ROI (all values in
-pixels and of type `Int`).
-
-An alternative is:
-
-    getroi(ROI, cam) -> ROI(xoff, yoff, width, height)
-
-which yields the ROI as an instance of the `ScientificCameras.ROI` structure.
-
-See also: [`setroi!`](@ref), [`ScientificCameras.ROI`](@ref).
-
-"""
-getroi(::Type{ROI}, cam::ScientificCamera; kwds...) =
-    ROI(getroi(cam; kwds...)...)
-
-# This version is meant to be extended.
-getroi(cam::ScientificCamera; kwds...) =
-    notimplemented(:getroi)
-
-"""
     getfullwidth(cam)  -> fullwidth
     getfullheight(cam) -> fullheight
     getfullsize(cam)   -> (fullwidth, fullheight)
 
-respectively yield the maximum width, height and dimensions for the images
-captured by the camera `cam` and assuming no subsampling.
+respectively yield the width, height and dimensions in pixels of the sensor of
+the camera `cam`.
 
-See also: [`setroi!`](@ref), [`getdecimation`](@ref).
+See also: [`setroi!`](@ref), [`getroi`](@ref).
 
 """
 getfullwidth(cam::ScientificCamera) = notimplemented(:getfullwidth)
@@ -219,62 +161,92 @@ getfullsize(cam::ScientificCamera) = (getfullwidth(cam), getfullheight(cam))
 @doc @doc(getfullwidth) getfullsize
 
 """
-    getdecimation(cam) -> (xsub, ysub)
 
-yields the actual decimation factors (in pixels along each dimension) for
-camera `cam`.  Note that the maximum image size is `div(fullwidth,xsub)` by
-`div(fullheight,ysub)` where `fullwidth` and `fullheight` are the dimensions
-returned by `getfullsize(cam)`.
+    getroi(cam) -> roi
 
-See also: [`setdecimation!`](@ref), [`getfullsize`](@ref), [`getroi`](@ref).
+yields the current region of interest (ROI) for the images acquired by the
+camera `cam`.  The result is a structure which has the following fields:
 
-"""
-getdecimation(cam::ScientificCamera) = notimplemented(:getdecimation)
+- `xsub`:   Horizontal size of macro-pixels (in pixels).
+- `ysub`:   Vertical size of macro-pixels (in pixels).
+- `xoff`:   Horizontal offset in pixels of the ROI relative to the sensor.
+- `yoff`:   Vertical offset in pixels of the ROI relative to the sensor.
+- `width`:  Width in macro-pixels of the ROI.
+- `height`: Height in macro-pixels of the ROI.
 
-"""
-    setdecimation!(cam, xsub, ysub)
-
-Sets the decimation factors (in pixels along each dimension) for camera `cam`.
-Note that the maximum image size will be `div(fullwidth,xsub)` by
-`div(fullheight,ysub)` where `fullwidth` and `fullheight` are the dimensions
-returned by `getfullsize(cam)`.
-
-See also: [`getdecimation`](@ref), [`getfullsize`](@ref), [`getroi`](@ref).
+See also: [`setroi!`](@ref), [`resetroi!`](@ref),
+          [`ScientificCameras.ROI`](@ref).
 
 """
-setdecimation!(cam::ScientificCamera, xsub, ysub) =
-    setdecimation!(cam, convert(Int, xsub), convert(Int, ysub))
+# This version is meant to be extended.
+getroi(cam::ScientificCamera) =
+    ROI(1, 1, 0, 0, getfullsize(cam)...)
+
+"""
+    setroi!(cam, roi)
+
+sets the region of interest (ROI) to be `roi` for the images acquired by the
+camera `cam`: `roi.xsub` and `roi.ysub` are the horizontal and vertical
+dimensions of the macro-pixels (in pixels), `roi.xoff` and `roi.yoff` are the
+horizontal and vertical offsets of the ROI relative to the sensor (in pixels),
+`width` and `height` are the horizontal and vertical dimensions of the ROI (in
+macro-pixels).
+
+The order of arguments can be reversed:
+
+    setroi!(roi, cam)
+
+Note that this method throws an exception if the settings of the ROI cannot be
+exactly applied.  As a consequence, it does not return the actual ROI because
+it can only be identical to the requested one.  Methods `getroi` and
+`resetroi!` can be used to query the current ROI or to reset the ROI to use the
+full sensor at full resolution.
+
+See also: [`getroi`](@ref), [`checkroi`](@ref), [`resetroi!`](@ref),
+          [`ScientificCameras.ROI`](@ref).
+
+"""
+setroi!(roi::ROI, cam::ScientificCamera) =
+    setroi!(cam, roi)
 
 # This version is meant to be extended.
-setdecimation!(cam::ScientificCamera, xsub::Int, ysub::Int) =
-    notimplemented(:setdecimation!)
+setroi!(cam::ScientificCamera, roi::ROI) =
+    notimplemented(:setroi!)
+
 
 """
+    resetroi!(cam)
 
-    checkroi(xoff, yoff, width, height, fullwidth, fullheight)
+resets the region of interest (ROI) for the images acquired by the camera `cam`
+to use the full sensor at full resolution.
 
-throws an `ArgumentError` exception if the region of interest (ROI) is not
-valid for the considered sensor size.  Arguments `xoff` and `yoff` are the
-horizontal and vertical offsets of the ROI relative to the sensor,
-`width` and `height` are the horizontal and vertical dimensions of the ROI,
-`fullwidth` and `fullheight` are the full dimensions of the sensor (all
-arguments in pixels).
+See also: [`getroi`](@ref), [`checkroi`](@ref), [`setroi`](@ref),
+          [`ScientificCameras.ROI`](@ref).
 
-There are many alternatives, for instance:
+"""
+resetroi!(cam::ScientificCamera) =
+    setroi!(cam, ROI(1, 1, 0, 0, getfullsize(cam)...))
 
+"""
     checkroi(roi, fullwidth, fullheight)
-    checkroi(roi, fullsize)
+
+or
+
+    checkroi(roi, (fullwidth, fullheight))
+
+throw an `ArgumentError` exception if the region of interest (ROI) is not valid
+for the considered sensor size.  Argument `roi` is an instance of the
+`ScientificCameras.ROI` structure, `fullwidth` and `fullheight` are the full
+dimensions of the sensor (in pixels).
+
+Instead of provided the full dimensions of the sensor, the camera instance can
+be given:
+
     checkroi(roi, cam)
+
+or
+
     checkroi(cam, roi)
-    checkroi(cam, xoff, yoff, width, height)
-
-where `roi` is an instance of the `ScientificCameras.ROI` structure, `cam` is a
-camera instance, `fullsize = (fullwidth, fullheight)`.  Note that `cam` is used
-to query the full size of the camera as:
-
-   getfullsize(cam; kwds...)
-
-with `kwds...` any keywords specified with `checkroi`.
 
 It is assumed that the `checkroi` method be called by any method extending the
 method `setroi!` whose signature is:
@@ -284,48 +256,62 @@ method `setroi!` whose signature is:
 where `Camera` is a sub-type of `ScientificCameras.ScientificCamera`.
 
 
-See also: [`setroi!`](@ref), [`ScientificCameras.ROI`](@ref),
-          [`getfullsize`](@ref).
+See also: [`setroi!`](@ref), [`resetroi!`](@ref),
+          [`ScientificCameras.ROI`](@ref), [`getfullsize`](@ref).
 
 """
-function checkroi(xoff::Int, yoff::Int, width::Int, height::Int,
-                  fullwidth::Int, fullheight::Int)
+function checkroi(roi::ROI, fullwidth::Int, fullheight::Int)
     if fullwidth < 1
         throw(ArgumentError("full width is too small ($fullwidth)"))
     end
     if fullheight < 1
         throw(ArgumentError("full height is too small ($fullheight)"))
     end
-    if xoff < 0
-        throw(ArgumentError("horizontal offset is too small ($xoff)"))
+    if roi.xsub < 1
+        throw(ArgumentError("horizontal decimation is too small ($(roi.xsub))"))
     end
-    if yoff <0
-        throw(ArgumentError("vertical offset is too small ($yoff)"))
+    if roi.xsub > fullwidth
+        throw(ArgumentError("horizontal decimation is too large ($(roi.xsub))"))
     end
-    if width < 1
-        throw(ArgumentError("width is too small ($width)"))
+    if roi.ysub < 1
+        throw(ArgumentError("vertical decimation is too small ($(roi.ysub))"))
     end
-    if height < 1
-        throw(ArgumentError("height is too small ($height)"))
+    if roi.ysub > fullheight
+        throw(ArgumentError("vertical decimation is too large ($(roi.ysub))"))
     end
-    if xoff + width > fullwidth
-        throw(ArgumentError("horizontal offset or width are too large ($(xoff + width))"))
+    if roi.xoff < 0
+        throw(ArgumentError("horizontal offset is too small ($(roi.xoff))"))
     end
-    if yoff + height > fullheight
-        throw(ArgumentError("vertical offset or height are too large ($(yoff + height))"))
+    if roi.yoff <0
+        throw(ArgumentError("vertical offset is too small ($(roi.yoff))"))
+    end
+    if roi.width < 1
+        throw(ArgumentError("width of $(roi.width) macro-pixels is too small"))
+    end
+    width = roi.width*roi.xsub # width in pixels
+    if width > fullwidth
+        throw(ArgumentError("width of $(width) pixels is too large"))
+    end
+    if roi.height < 1
+        throw(ArgumentError("height of $(roi.height) macro-pixels is too small"))
+    end
+    height = roi.height*roi.xsub # height in pixels
+    if height > fullheight
+        throw(ArgumentError("height of $(height) pixels is too large"))
+    end
+    xmax = roi.xoff + width
+    if xmax > fullwidth
+        throw(ArgumentError("right bound at $(xmax) pixels is too large"))
+    end
+    ymax = roi.yoff + roi.height*roi.ysub
+    if ymax > fullheight
+        throw(ArgumentError("top boundary at $(ymax) is too large"))
     end
     nothing
 end
 
-function checkroi(xoff::Integer, yoff::Integer, width::Integer, height::Integer,
-                  fullwidth::Integer, fullheight::Integer)
-    checkroi(convert(Int, xoff), convert(Int, yoff),
-             convert(Int, width), convert(Int, height),
-             convert(Int, fullwidth), convert(Int, fullheight))
-end
-
 checkroi(roi::ROI, fullwidth::Integer, fullheight::Integer) =
-    checkroi(roi.xoff, roi.yoff, roi.width, roi.height, fullwidth, fullheight)
+    checkroi(roi, convert(Int, fullwidth), convert(Int, fullheight))
 
 checkroi(roi::ROI, fullsize::NTuple{2,Integer}) =
     checkroi(roi, fullsize...)
@@ -333,8 +319,8 @@ checkroi(roi::ROI, fullsize::NTuple{2,Integer}) =
 checkroi(roi::ROI, cam::ScientificCamera; kdws...) =
     checkroi(roi, getfullsize(cam; kdws...))
 
-checkroi(cam::ScientificCamera, args...; kwds...) =
-    checkroi(args..., getfullsize(cam; kdws...))
+checkroi(cam::ScientificCamera, roi::ROI; kwds...) =
+    checkroi(roi, getfullsize(cam; kdws...))
 
 """
     bitsperpixel(fmt)
