@@ -72,7 +72,31 @@ struct NotImplementedException <: Exception
 end
 
 #------------------------------------------------------------------------------
-# PIXEL FORMATS AND EQUIVALENT BITS TYPES
+# PIXEL FORMATS
+#
+# Pixel formats are defined in a separate module so that it is easier to import
+# all pixel formats with:
+#
+#    using ScientificCameras.PixelFormats
+
+module PixelFormats
+
+export
+    PixelFormat,
+    Monochrome,
+    ColorFormat,
+    RGB,
+    BGR,
+    XRGB,
+    XBGR,
+    RGBX,
+    BGRX,
+    BayerFormat,
+    BayerRGGB,
+    BayerGRBG,
+    BayerBGGR,
+    BayerBGGR,
+    YUV422
 
 """
 
@@ -205,7 +229,48 @@ struct BGRX{N} <: ColorFormat{N}; end
 @doc @doc(XRGB) RGBX
 @doc @doc(XRGB) BGRX
 
-# Note that whatever the ordering of values in memory, the constructors use
+"""
+
+`YUV422` is a 32-bit packed color format which encodes Y, U and V color
+components in a macro pixel with 4 bytes U, Y0, V and Y1 (in that order) where
+Y0 and Y1 are the lowest and highest significant bytes of Y.
+
+See http://www.fourcc.org/yuv.php and
+https://stackoverflow.com/questions/8561185/yuv-422-yuv-420-yuv-444
+
+The equivalent Julia bits type is given by `Y422BitsType`.
+
+See also: [`bitsperpixel`](@ref), [`equivalentbitstype`](@ref),
+          [`ScientificCameras.PixelFormat`](@ref).
+
+"""
+struct YUV422 <: ColorFormat{32}; end
+
+end # module PixelFormats
+
+# Import all pixel formats in the main module.
+using .PixelFormats
+
+#------------------------------------------------------------------------------
+# EQUIVALENT BITS TYPES FOR PIXEL FORMATS
+#
+# Like pixel formats, bits types are defined in a separate module so that it is
+# easier to import all pixel formats with:
+#
+#    using ScientificCameras.BitsTypes
+
+module BitsTypes
+
+export
+    RGB24BitsType,
+    BGR24BitsType,
+    XRGB32BitsType,
+    XBGR32BitsType,
+    RGBX32BitsType,
+    BGRX32BitsType,
+    YUV422BitsType
+
+    # Note that whatever the ordering of values in memory, the constructors use
 # always the same order: R, G, B and, possibly, X (which defaults to 0).
 struct RGB24BitsType
     r::UInt8
@@ -253,23 +318,6 @@ struct BGRX32BitsType
     BGRX32BitsType(r, g, b, x = zero(UInt8)) = new(b, g, r, x)
 end
 
-"""
-
-`YUV422` is a 32-bit packed color format which encodes Y, U and V color
-components in a macro pixel with 4 bytes U, Y0, V and Y1 (in that order) where
-Y0 and Y1 are the lowest and highest significant bytes of Y.
-
-See http://www.fourcc.org/yuv.php and
-https://stackoverflow.com/questions/8561185/yuv-422-yuv-420-yuv-444
-
-The equivalent Julia bits type is given by `Y422BitsType`.
-
-See also: [`bitsperpixel`](@ref), [`equivalentbitstype`](@ref),
-          [`ScientificCameras.PixelFormat`](@ref).
-
-"""
-struct YUV422 <: ColorFormat{32}; end
-
 struct YUV422BitsType
     U  :: UInt8
     Y0 :: UInt8
@@ -277,59 +325,7 @@ struct YUV422BitsType
     Y1 :: UInt8
 end
 
-# Pixel formats are imported in a separate module and then exported so that it
-# is easier to import all pixel formats with:
-#
-#    using ScientificCameras.PixelFormats
+end # module BitsTypes
 
-module PixelFormats
-
-import
-    ..PixelFormat,
-    ..Monochrome,
-    ..ColorFormat,
-    ..RGB,
-    ..RGB24BitsType,
-    ..BGR,
-    ..BGR24BitsType,
-    ..XRGB,
-    ..XRGB32BitsType,
-    ..XBGR,
-    ..XBGR32BitsType,
-    ..RGBX,
-    ..RGBX32BitsType,
-    ..BGRX,
-    ..BGRX32BitsType,
-    ..BayerFormat,
-    ..BayerRGGB,
-    ..BayerGRBG,
-    ..BayerBGGR,
-    ..BayerBGGR,
-    ..YUV422,
-    ..YUV422BitsType
-
-export
-    PixelFormat,
-    Monochrome,
-    ColorFormat,
-    RGB,
-    RGB24BitsType,
-    BGR,
-    BGR24BitsType,
-    XRGB,
-    XRGB32BitsType,
-    XBGR,
-    XBGR32BitsType,
-    RGBX,
-    RGBX32BitsType,
-    BGRX,
-    BGRX32BitsType,
-    BayerFormat,
-    BayerRGGB,
-    BayerGRBG,
-    BayerBGGR,
-    BayerBGGR,
-    YUV422,
-    YUV422BitsType
-
-end # module PixelFormats
+# Import all bits types in the main module.
+using .BitsTypes

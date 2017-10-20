@@ -1,3 +1,6 @@
+- Pixel formats and bits types can be specifically imported by `using
+  ScientificCameras.PixelFormats` and `using ScientificCameras.BitsTypes`.
+
 - New macro `ScientificCameras.@exportpublicinterface` for derived modules to
   re-export the public interface (only methods for now) of the
   `ScientificCameras` module so that the end-user does not have to explicitly
