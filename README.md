@@ -2,7 +2,9 @@
 
 The `ScientificCameras` package provides an infrastructure to interface
 scientific cameras with [`Julia`](http://julialang.org/).  This infrastructure
-is an attempt to unify the use of interfaced cameras in Julia.
+is an attempt to unify the use of interfaced cameras in Julia and is used by
+[`Phoenix.jl`](https://github.com/emmt/Phoenix.jl) and
+[`AndorCameras.jl`](https://github.com/emmt/AndorCameras.jl) packages.
 
 
 ## Table of contents
@@ -253,8 +255,9 @@ To avoid unpacking pixel values, it is advisable to choose a pixel format,
 
 ## Implementing a concrete interface
 
-An example of concrete implementation of the interface is given by the
-[`Phoenix.jl`](https://github.com/emmt/Phoenix.jl) package.
+Examples of concrete implementations of the interface are given by the
+[`Phoenix.jl`](https://github.com/emmt/Phoenix.jl) and
+[`AndorCameras.jl`](https://github.com/emmt/AndorCameras.jl) packages.
 
 The `ScientificCameras` package mostly provides an infrastructure for concrete
 interfaces to cameras.  To be callable (without throwing a
