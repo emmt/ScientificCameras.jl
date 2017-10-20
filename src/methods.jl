@@ -174,9 +174,9 @@ camera `cam`.  The result is a structure which has the following fields:
 - `width`:  Width in macro-pixels of the ROI.
 - `height`: Height in macro-pixels of the ROI.
 
-Note that depending on the camera model, macro-pixels can be larger pixels made
-of `xsub` by `yxsub` sensor pixels (binning) or a single sensor pixel taken
-every `xsub` by `yxsub` sensor pixels (subsampling).
+Depending on the camera model, *macro-pixels* can be larger pixels made of
+`xsub` by `yxsub` sensor pixels (binning) or single sensor pixels taken every
+`xsub` by `yxsub` sensor pixels (subsampling).
 
 See also: [`setroi!`](@ref), [`resetroi!`](@ref),
           [`ScientificCameras.ROI`](@ref).

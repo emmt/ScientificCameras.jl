@@ -65,7 +65,10 @@ you can specifically catch it).
 
 ### Region of interest
 
-The region of interest (ROI) is defined by 4 values:
+The region of interest (ROI) is defined by 6 values:
+
+- `xsub`, `ysub` the horizontal and vertical dimensions of the macro-pixels
+  in pixels;
 
 - `xoff`, `yoff` the horizontal and vertical offsets of the ROI in pixels
   relative to the sensor area;
@@ -73,11 +76,35 @@ The region of interest (ROI) is defined by 4 values:
 - `width` and `height` the horizontal and vertical dimensions of the ROI in
   macro-pixels.
 
-Macro-pixels are block of `xsub` by `yxsub` pixels where `xsub` and `yxsub` are
-the horizontal and vertical subsampling factors.  Note that some hardware may
-impose restrictions such as `xoff` and `yoff` being multiple of `xsub` and
-`yxsub` respectively.  These kind of restrictions cannot be compensated by the
-software.
+Depending on the camera model, *macro-pixels* can be larger pixels made of
+`xsub` by `yxsub` sensor pixels (known as *binning*) or single sensor pixels
+taken every `xsub` by `yxsub` sensor pixels (known as *subsampling*).  Some
+hardware may impose restrictions such as `xoff` and `yoff` being multiple of
+`xsub` and `yxsub` respectively.  These kind of restrictions cannot be
+compensated by the software.
+
+In the following example, we first get the current ROI settings, then modify it
+to have no subsampling/rebinning and a centered ROI of half the sensor
+dimensions and finally apply it:
+
+```julia
+roi = getroi(cam) # retrieve current ROI
+roi.xsub = 1
+roi.ysub = 1
+roi.xoff = div(getfullwidth(cam),4)
+roi.yoff = div(getfullheight(cam)/4)
+roi.width = div(getfullwidth(cam),2)
+roi.height = div(getfullheight(cam),2)
+setroi!(cam, roi) # apply the new settings
+```
+
+The same result is obtained with:
+
+```julia
+fullwidth, fullheight = getfullsize(cam)
+setroi!(cam, 1, 1, div(fullwidth(cam),4), div(fullheight,4),
+        div(fullwidth(cam),4), div(fullheight,4))
+```
 
 
 ### Reading a given number of images
