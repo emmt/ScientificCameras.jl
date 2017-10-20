@@ -273,7 +273,10 @@ typically:
 # (only methods are exported by ScientificCameras).
 importall ScientificCameras
 import ScientificCameras: ScientificCamera, ROI
-import Base: open, close, read.
+using ScientificCameras.PixelFormats
+
+# Re-export the public interface of the ScientificCameras module.
+ScientificCameras.@exportpublicinterface
 
 function open(::Type{Camera}, args...; kwds...)
     cam = ... # create camera instance
