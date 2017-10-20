@@ -174,6 +174,10 @@ camera `cam`.  The result is a structure which has the following fields:
 - `width`:  Width in macro-pixels of the ROI.
 - `height`: Height in macro-pixels of the ROI.
 
+Note that depending on the camera model, macro-pixels can be larger pixels made
+of `xsub` by `yxsub` sensor pixels (binning) or a single sensor pixel taken
+every `xsub` by `yxsub` sensor pixels (subsampling).
+
 See also: [`setroi!`](@ref), [`resetroi!`](@ref),
           [`ScientificCameras.ROI`](@ref).
 
@@ -192,9 +196,14 @@ horizontal and vertical offsets of the ROI relative to the sensor (in pixels),
 `width` and `height` are the horizontal and vertical dimensions of the ROI (in
 macro-pixels).
 
-The order of arguments can be reversed:
+The region of interest can be specified by 2, 4 or 6 integers:
 
-    setroi!(roi, cam)
+    setroi!(cam, width, height)
+    setroi!(cam, xoff, yoff, width, height)
+    setroi!(cam, xsub, ysub, xoff, yoff, width, height)
+
+where unspecified offsets are assumed to be `0` while unspecified binning or
+subsampling parameters are assumed to be `1`.
 
 Note that this method throws an exception if the settings of the ROI cannot be
 exactly applied.  As a consequence, it does not return the actual ROI because
@@ -206,8 +215,8 @@ See also: [`getroi`](@ref), [`checkroi`](@ref), [`resetroi!`](@ref),
           [`ScientificCameras.ROI`](@ref).
 
 """
-setroi!(roi::ROI, cam::ScientificCamera) =
-    setroi!(cam, roi)
+setroi!(cam::ScientificCamera, args::Integer...) =
+    setroi!(cam, ROI(args...))
 
 # This version is meant to be extended.
 setroi!(cam::ScientificCamera, roi::ROI) =
