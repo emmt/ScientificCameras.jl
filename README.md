@@ -94,7 +94,7 @@ roi = getroi(cam) # retrieve current ROI
 roi.xsub = 1
 roi.ysub = 1
 roi.xoff = div(getfullwidth(cam),4)
-roi.yoff = div(getfullheight(cam)/4)
+roi.yoff = div(getfullheight(cam),4)
 roi.width = div(getfullwidth(cam),2)
 roi.height = div(getfullheight(cam),2)
 setroi!(cam, roi) # apply the new settings
