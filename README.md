@@ -112,8 +112,15 @@ setroi!(cam, 1, 1, div(fullwidth(cam),4), div(fullheight,4),
 ### Reading a given number of images
 
 Assuming you have a connected and configured camera instance, say `cam`, it is
-time to read images.  Reading a given number of images is done by something
-like:
+time to read images.  Reading a given number of images amounts to calling
+`read`.  For instance, to read a single image:
+
+```julia
+img = read(cam, UInt8)
+```
+
+yields a 2D Julia array whose element type is `UInt8` (see below for more
+details).  Reading a given number of images is done by something like:
 
 ```julia
 imgs = read(cam, UInt8, 10)
@@ -124,6 +131,9 @@ images.  Each image is a Julia array whose dimensions are those of the chosen
 region of interest (ROI).  It is however possible that the first dimension (the
 *width*) be different to that of the ROI to accommodate for different sizes for
 the pixel format used by the camera and the chosen element type.
+
+In the `read` call, the element type of the result is optional.  If omitted, it
+is given by: `getcapturebitstype(cam)`.
 
 
 ### Continuous acquisition
@@ -167,7 +177,9 @@ available for some other purposes.
 formats and is parameterized by `N` the number of bits per pixel.  In order to
 avoid prefixing pixel formats by ``ScientificCameras.`, you may add:
 
-    using ScientificCameras.PixelFormats
+```julia
+using ScientificCameras.PixelFormats
+```
 
 to your code, as `using ScientificCameras` only imports public methods defined
 by the package (no types).  In what follows, it is assumed that
@@ -176,22 +188,24 @@ by the package (no types).  In what follows, it is assumed that
 Actual pixel formats are concrete sub-types of `PixelFormat{N}`.  The type
 hierarchy is:
 
-    PixelFormat{N} (abstract)
-     |- Monochrome{N} (concrete)
-     `- ColorFormat{N} (abstract)
-         |- RGB{N} (concrete)
-         |- BGR{N} (concrete)
-         |- XRGB{N} (concrete)
-         |- XBGR{N} (concrete)
-         |- RGBX{N} (concrete)
-         |- BGRX{N} (concrete)
-         |- BayerFormat{N} (abstract)
-         |   |- BayerRGGB{N} (concrete)
-         |   |- BayerGRBG{N} (concrete)
-         |   |- BayerBGGR{N} (concrete)
-         |   `- BayerBGGR{N} (concrete)
-         `- YUV422 (concrete)
-       (etc.)
+```
+PixelFormat{N} (abstract)
+ |- Monochrome{N} (concrete)
+ `- ColorFormat{N} (abstract)
+     |- RGB{N} (concrete)
+     |- BGR{N} (concrete)
+     |- XRGB{N} (concrete)
+     |- XBGR{N} (concrete)
+     |- RGBX{N} (concrete)
+     |- BGRX{N} (concrete)
+     |- BayerFormat{N} (abstract)
+     |   |- BayerRGGB{N} (concrete)
+     |   |- BayerGRBG{N} (concrete)
+     |   |- BayerBGGR{N} (concrete)
+     |   `- BayerBGGR{N} (concrete)
+     `- YUV422 (concrete)
+   (etc.)
+```
 
 Note that *concrete* types (the leaves of the above tree) are all singletons.
 This system forbids to have concrete definitions which provide an equivalent
@@ -200,7 +214,9 @@ pixel formats are just meant to describe the pixel format used by a camera, not
 to provide Julia equivalent bits types.  To get the equivalent bits type (when
 it exists), call:
 
-    equivalentbitstype(format)
+```julia
+equivalentbitstype(format)
+```
 
 which returns `Void` when there is no possible exact equivalence.
 
@@ -211,16 +227,22 @@ There are two pixel formats: one, say `campix`, corresponding to the data sent
 by the camera and the other, say `bufpix`, corresponding to the pixels in the
 captured images.  To retrieve these pixel formats, just do:
 
-    campix, bufpix = getpixelformat(cam)
+```julia
+campix, bufpix = getpixelformat(cam)
+```
 
 To change the pixel format(s), do:
 
-    setpixelformat!(cam, campix)
+```julia
+setpixelformat!(cam, campix)
+```
 
 to set the camera pixel format to `campix` and use a close approximation of
 `campix` for the captured images, or:
 
-    setpixelformat!(cam, campix, bufpix)
+```julia
+setpixelformat!(cam, campix, bufpix)
+```
 
 to set possibly different pixel formats.  Not all hardware support all
 combination of pixel formats.
@@ -230,11 +252,15 @@ the type of the elements of the Julia arrays used as image buffers has also to
 be taken into account.  When capturing images, the type, say `T`, of the
 elements of the Julia arrays used as image buffers may be specified as follows:
 
-    imgs = read(cam, T, n)
+```julia
+imgs = read(cam, T, n)
+```
 
 for sequential acquisition of `n` images, or:
 
-    imgs = start(cam, T, n)
+```julia
+imgs = start(cam, T, n)
+```
 
 for continuous acquisition using `n` image buffers.  An image buffer,
 `imgs[k]`, is a regular Julia 2D array whose element type is `T`, whose first

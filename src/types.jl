@@ -12,6 +12,11 @@
 #
 
 """
+`TimeoutError` is used to throw a timeout exception.
+"""
+struct TimeoutError <: Exception; end
+
+"""
 
 Concrete types derived from abstract type `ScientificCamera` are used to
 uniquely identify the different camera models or different combinations of

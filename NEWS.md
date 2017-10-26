@@ -1,3 +1,13 @@
+- `read(cam [, T])` returns a single image (not a vector with a single image).
+  Default implementations of `read` are provided with keywords `timeout`,
+  `truncate` and `skip`.
+
+- New method `defaulttimeout` to compute a timeout for acquiring a given number
+  of images.
+
+- `wait` throws an exception of type `ScientificCameras.TimeoutError` in case
+  of timeout.
+
 - Pixel formats and bits types can be specifically imported by `using
   ScientificCameras.PixelFormats` and `using ScientificCameras.BitsTypes`.
 

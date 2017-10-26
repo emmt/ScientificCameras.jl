@@ -23,10 +23,18 @@ Base.showerror(io::IO, err::NotImplementedException) =
 creates a camera instance of type `C`, connects it to the hardware
 and returns it.
 
+    open(cam, ...)
+
+reopens a camera that has been closed.
+
+
 See also: [`close`](@ref), [`start`](@ref), [`read`](@ref).
 
 """
 open(::Type{C}, args...; kwds...) where {C<:ScientificCamera} =
+    notimplemented(:open)
+
+open(::ScientificCamera, args...; kwds...) =
     notimplemented(:open)
 
 """
@@ -41,30 +49,112 @@ close(cam::ScientificCamera) =
     notimplemented(:close)
 
 """
-    read(cam, [T,] n = 1) -> imgs
+    defaulttimeout(cam, n) -> sec
 
-reads `n` images from camera `cam`.  Optional argument `T` is the element type
-of the returned images.  If the type is not specified, it is determined
-automatically by `getcapturebitstype(cam)`.  The result is a vector of images:
-`imgs[1]` is the first image, `imgs[2]` is the second image and so on.  Each
-image is a 2D Julia array.  For instance, the type of `imgs` is
-`Array{Array{T,2},1}`.
+yields the default timeout (in seconds) to acquire `n` images with camera
+`cam`.  The returned value is one seconds plus the time needed to exposure and
+read `n` images (with a 1% tolerance).
 
-See also: [`open`](@ref), [`start`](@ref), [`equivalentbitstype`](@ref).
+See also: [`read`](@ref), [`getspeed`][@ref).
 
 """
-read(cam::ScientificCamera, ::Type{T}, n::Integer = 1; kwds...) where {T} =
+function defaulttimeout(cam::ScientificCamera, n::Integer)
+    fps, exp = getspeed(cam)
+    return 1.0 + 1.01*(n/fps + exp)
+end
+
+"""
+    read(cam, T=getcapturebitstype(cam)) -> img
+
+reads an image from camera `cam`.  Optional argument `T` is the element type of
+the returned image.  If the type is not specified, it is determined
+automatically by `getcapturebitstype(cam)`.  The result is a 2D Julia array of
+type `Array{T,2}`.
+
+    read(cam, [T=getcapturebitstype(cam),] n) -> imgs
+
+reads `n` images from camera `cam`.  The result is a vector of images:
+`imgs[1]` is the first image, `imgs[2]` is the second image and so on.  Each
+image is a 2D Julia array, hence `imgs` is of type `Array{Array{T,2},1}`.
+
+Keyword `skip` can be used to specify a number of images to skip.
+
+Keyword `timeout` can be used to specify the maximum amount of time (in
+seconds) to wait for acquisition to complete.  If acquisition takes longer than
+this time, a `ScientificCameras.TimeoutError` is thrown unless `n` images are
+being read and keyword `truncate` is `true` (it is `false` by default) in which
+case a warning is printed and a truncated list of images is returned.
+
+See also: [`open`](@ref), [`start`](@ref), [`equivalentbitstype`](@ref),
+          [`defaulttimeout`](@ref), .
+
+"""
+read(cam::ScientificCamera; kwds...) =
+    read(cam, getcapturebitstype(cam); kwds...)
+
+# Default version (can be extended to improve performances).
+function read(cam::ScientificCamera, ::Type{T};
+              skip::Integer = 0,
+              timeout::Real = defaulttimeout(cam, 1 + skip)) where {T}
+    start(cam, T, 1)
+    while true
+        try
+            img, timestamp = wait(cam, timeout)
+            if skip > zero(skip)
+                skip -= one(skip)
+            else
+                abort(cam)
+                return img
+            end
+        catch e
+            abort(cam)
+            rethrow(e)
+        end
+    end
+end
+
+read(cam::ScientificCamera, ::Type{T}, n::Integer; kwds...) where {T} =
     read(cam, T, convert(Int, n); kwds...)
 
-read(cam::ScientificCamera, n::Integer = 1; kwds...) =
+read(cam::ScientificCamera, n::Integer; kwds...) =
     read(cam, getcapturebitstype(cam), convert(Int, n); kwds...)
 
-# This version is meant to be extended.
-read(cam::ScientificCamera, ::Type{T}, n::Int; kwds...) where {T} =
-    notimplemented(:read)
+# Default version (can be extended to improve performances).
+function read(cam::ScientificCamera, ::Type{T}, n::Int;
+              skip::Integer = 0,
+              timeout::Real = defaulttimeout(cam, n + skip),
+              truncate::Bool = false) where {T}
+    imgs = Vector{Array{T,2}}(num)
+    cnt = 0
+    start(cam, T, n + 1)
+    while cnt < num
+        try
+            img, timestamp = wait(cam, timeout)
+            if skip > zero(skip)
+                skip -= one(skip)
+                release(cam)
+            else
+                cnt += 1
+                imgs[cnt] = img
+            end
+        catch e
+            if truncate && isa(e, TimeoutError)
+                warn("Acquisition timeout after $cnt image(s)")
+                num = cnt
+                resize!(imgs, num)
+            else
+                abort(cam)
+                rethrow(e)
+            end
+        end
+    end
+    abort(cam)
+    return imgs
+end
+
 
 """
-    start(cam, [T,] n = 1) -> imgs
+    start(cam, [T=getcapturebitstype(cam),] n = 2) -> imgs
 
 starts continuous acquisition with camera `cam` using `n` image buffers which
 are returned.  Optional argument `T` is the element type of the returned
@@ -76,10 +166,10 @@ See also: [`open`](@ref), [`read`](@ref), [`wait`](@ref), [`stop`](@ref),
           [`abort`](@ref).
 
 """
-start(cam::ScientificCamera, ::Type{T}, n::Integer = 1; kwds...) where {T} =
+start(cam::ScientificCamera, ::Type{T}, n::Integer = 2; kwds...) where {T} =
     start(cam, T, convert(Int, n); kwds...)
 
-start(cam::ScientificCamera, n::Integer = 1; kwds...) =
+start(cam::ScientificCamera, n::Integer = 2; kwds...) =
     start(cam, getcapturebitstype(cam), convert(Int, n); kwds...)
 
 # This version is meant to be extended.
@@ -111,14 +201,23 @@ abort(cam::ScientificCamera) =
     notimplemented(:stop)
 
 """
-    wait(cam, timeout, drop = false) -> index
+    wait(cam, timeout, drop = false) -> img, timestamp
 
 waits for the next frame from camera `cam` but not longer than `timeout`
-seconds and returns the index of the next frame in the image buffers or `0` if
-timeout occured.  If `drop` is `true`, unprocessed frames are discarded, *i.e.*
-only the newest frame is returned.
+seconds and returns the next image and its timestamp (in seconds).  If `drop`
+is `true`, unprocessed frames are discarded, *i.e.* only the newest frame is
+returned.  If the allowed time expires before a new image is available, a
+`ScientificCameras.TimeoutError` is thrown.
 
 If properly implemented, waiting for a frame should consume no CPU.
+
+This method is intended for continuous acquisition and real time processing, it
+should therefore avoid allocating ressources.  As a result, the images returned
+by `wait` are usually part of ressources associated with the camera and
+cyclically reused when `release(cam)` is called after processing each image.
+This means that the contents of the images is overwritten by the next cycle
+(unless `release(cam)` is not called but then only `n` images can be returned).
+
 
 See also: [`start`](@ref), [`release`](@ref).
 
