@@ -120,9 +120,9 @@ read(cam::ScientificCamera, n::Integer; kwds...) =
     read(cam, getcapturebitstype(cam), convert(Int, n); kwds...)
 
 # Default version (can be extended to improve performances).
-function read(cam::ScientificCamera, ::Type{T}, n::Int;
+function read(cam::ScientificCamera, ::Type{T}, num::Int;
               skip::Integer = 0,
-              timeout::Real = defaulttimeout(cam, n + skip),
+              timeout::Real = defaulttimeout(cam, num + skip),
               truncate::Bool = false) where {T}
     imgs = Vector{Array{T,2}}(num)
     cnt = 0
