@@ -96,10 +96,16 @@ read(cam::ScientificCamera; kwds...) =
 function read(cam::ScientificCamera, ::Type{T};
               skip::Integer = 0,
               timeout::Real = defaulttimeout(cam, 1 + skip)) where {T}
+
+    # Final time (in seconds).
+    timeout > zero(timeout) || error("invalid timeout")
+    final = time() + convert(Float64, timeout)
+
+    # Acquire a single image.
     start(cam, T, (skip > zero(skip) ? 2 : 1))
     while true
         try
-            img, timestamp = wait(cam, timeout)
+            img, ticks = wait(cam, max(final - time(), 0.0))
             if skip > zero(skip)
                 skip -= one(skip)
             else
@@ -124,12 +130,18 @@ function read(cam::ScientificCamera, ::Type{T}, num::Int;
               skip::Integer = 0,
               timeout::Real = defaulttimeout(cam, num + skip),
               truncate::Bool = false) where {T}
+
+    # Final time (in seconds).
+    timeout > zero(timeout) || error("invalid timeout")
+    final = time() + convert(Float64, timeout)
+
+    # Acquire a single image.
     imgs = Vector{Array{T,2}}(num)
     cnt = 0
     start(cam, T, n + 1)
     while cnt < num
         try
-            img, timestamp = wait(cam, timeout)
+            img, ticks = wait(cam, max(final - time(), 0.0))
             if skip > zero(skip)
                 skip -= one(skip)
                 release(cam)
