@@ -22,6 +22,7 @@ macro exportpublicinterface()
     :(export
       open,
       close,
+      defaulttimeout,
       read,
       start,
       stop,
