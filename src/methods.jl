@@ -96,7 +96,7 @@ read(cam::ScientificCamera; kwds...) =
 function read(cam::ScientificCamera, ::Type{T};
               skip::Integer = 0,
               timeout::Real = defaulttimeout(cam, 1 + skip)) where {T}
-    start(cam, T, 1)
+    start(cam, T, (skip > zero(skip) ? 2 : 1))
     while true
         try
             img, timestamp = wait(cam, timeout)
