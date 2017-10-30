@@ -216,9 +216,10 @@ abort(cam::ScientificCamera) =
     wait(cam, timeout, drop = false) -> img, timestamp
 
 waits for the next frame from camera `cam` but not longer than `timeout`
-seconds and returns the next image and its timestamp (in seconds).  If `drop`
-is `true`, unprocessed frames are discarded, *i.e.* only the newest frame is
-returned.  If the allowed time expires before a new image is available, a
+seconds and returns the next image and its timestamp (that is the date of
+arrival of the captured image in seconds).  If `drop` is `true`, unprocessed
+frames are discarded, *i.e.* only the newest frame is returned.  If the allowed
+time expires before a new image is available, a
 `ScientificCameras.TimeoutError` is thrown.
 
 If properly implemented, waiting for a frame should consume no CPU.
