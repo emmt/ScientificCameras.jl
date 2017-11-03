@@ -143,12 +143,11 @@ have connected and configured your camera, continuous acquisition is done by a
 loop like:
 
 ```julia
-bufs = start(cam, UInt16, 4) # start continuous acquisition
+start(cam, UInt16, 4) # start continuous acquisition
 for number in 1:100
-    index = wait(cam, Inf) # wait for next frame (waiting forever)
-    buf = bufs[index] # get image buffer
-    ... # process the image buffer
-    release(cam) # frame buffer is again available for acquisition
+    img, ticks = wait(cam, Inf) # wait for next frame (waiting forever)
+    ... # process the captured image `img`
+    release(cam) # image buffer is again available for acquisition
 end
 abort(cam) # abort acquisition and exit the loop
 ```
@@ -223,29 +222,29 @@ which returns `Void` when there is no possible exact equivalence.
 
 ### Choosing the pixel format
 
-There are two pixel formats: one, say `campix`, corresponding to the data sent
-by the camera and the other, say `bufpix`, corresponding to the pixels in the
-captured images.  To retrieve these pixel formats, just do:
+There are two pixel formats: one corresponding to the data sent by the camera
+and the other corresponding to the pixels in the captured images.  To retrieve
+the pixel format of the camera, just do:
 
 ```julia
-campix, bufpix = getpixelformat(cam)
+fmt = getpixelformat(cam)
 ```
 
-To change the pixel format(s), do:
+To change the pixel format of the camera `cam` to `fmt`, do:
 
 ```julia
-setpixelformat!(cam, campix)
+setpixelformat!(cam, fmt)
 ```
 
-to set the camera pixel format to `campix` and use a close approximation of
-`campix` for the captured images, or:
+For instance:
 
 ```julia
-setpixelformat!(cam, campix, bufpix)
+using ScientificCameras.PixelFormats
+setpixelformat!(cam, Monochrome{10})
 ```
 
-to set possibly different pixel formats.  Not all hardware support all
-combination of pixel formats.
+to select monochrome pixels encoded on 10 bits.  Not all hardware support
+different pixel formats.
 
 Because not all pixel formats are exactly representable by a Julia bits type,
 the type of the elements of the Julia arrays used as image buffers has also to
@@ -259,24 +258,23 @@ imgs = read(cam, T, n)
 for sequential acquisition of `n` images, or:
 
 ```julia
-imgs = start(cam, T, n)
+start(cam, T, n)
 ```
 
-for continuous acquisition using `n` image buffers.  An image buffer,
-`imgs[k]`, is a regular Julia 2D array whose element type is `T`, whose first
-dimension is set so as to store the binary data of a single line of the
-captured image (with pixel format `bufpix`) with possible padding, and whose
-second dimension is the number of lines in the captured image.
+for continuous acquisition using `n` image buffers and capturing images as
+regular Julia 2D array whose element type is `T`.
 
 If the type `T` of the array elements is not specified, the method
-`getcapturebitstype(cam)` is used to find a Julia bits type corresponding to
-the image buffers pixel format `bufpix`.  If there are no equivalent bits
-types, `getcapturebitstype(cam)` yields `UInt8` (*i.e.* image buffers are
-stored as 2D byte arrays in Julia).
+`getcapturebitstype(cam)` is used to find an equivalence Julia bits type.  If
+there are no equivalent bits types, `getcapturebitstype(cam)` yields `UInt8`
+(*i.e.* image buffers are stored as 2D byte arrays in Julia whose first
+dimension is set so as to store the binary data of a single line of the
+captured image with possible padding, and whose second dimension is the number
+of lines in the captured image).
 
-To avoid unpacking pixel values, it is advisable to choose a pixel format,
-`bufpix`, for the image buffers which is close to the camera pixel format
-`campix` while having an exact equivalent Julia bits type.
+To avoid unpacking pixel values, it is advisable to choose a Julia bits type
+for the captured images which is close or, better, exactly equivalent to the
+camera pixel format.
 
 
 ## Implementing a concrete interface
@@ -334,12 +332,11 @@ A complete interface would extend the following methods:
 
 - `open` for creating an instance of the camera connected to the hardware.
 - `close` for disconnecting a camera from the hardware.
-- `read` for reading a given number of images.
 - `start`, `wait`, `release`, `stop` and `abort` for continuous acquisition.
 - `getfullwidth`, `getfullheight` for getting the full size of the sensor.
 - `getroi` and `setroi!` for the region of interest.
-- `getpixelformat`, `setpixelformat!` and `supportedpixelformats` for the pixel
-  format.
+- `getpixelformat`, `setpixelformat!`, `supportedpixelformats` and
+  `getcapturebitstype` for the pixel format.
 - `getspeed`, `setspeed!` and `checkspeed` for the frame rate and exposure
   time.
 - `getgain` and `setgain!` for the gain of the analog to digital conversion.
@@ -347,6 +344,9 @@ A complete interface would extend the following methods:
 - `getgamma` and `setgamma!` for the gamma correction of the analog to digital
   conversion.
 
+Default implementations are provided by `ScientificCameras` for the following
+methods:
+- `read` for reading a given number of images.
 
 ## Installation
 

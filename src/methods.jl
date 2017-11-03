@@ -97,8 +97,11 @@ function read(cam::ScientificCamera, ::Type{T};
               skip::Integer = 0,
               timeout::Real = defaulttimeout(cam, 1 + skip)) where {T}
 
-    # Final time (in seconds).
+    # Check arguments.
+    skip ≥ 0 || throw(ArgumentError("invalid number of images to skip"))
     timeout > zero(timeout) || error("invalid timeout")
+
+    # Final time (in seconds).
     final = time() + convert(Float64, timeout)
 
     # Acquire a single image.
@@ -107,8 +110,11 @@ function read(cam::ScientificCamera, ::Type{T};
         try
             img, ticks = wait(cam, max(final - time(), 0.0))
             if skip > zero(skip)
+                # Skip this frame.
                 skip -= one(skip)
+                release(cam)
             else
+                # Stop immediately and return image.
                 abort(cam)
                 return img
             end
@@ -131,14 +137,18 @@ function read(cam::ScientificCamera, ::Type{T}, num::Int;
               timeout::Real = defaulttimeout(cam, num + skip),
               truncate::Bool = false) where {T}
 
-    # Final time (in seconds).
+    # Check arguments.
+    num ≥ 1 || throw(ArgumentError("invalid number of images"))
+    skip ≥ 0 || throw(ArgumentError("invalid number of images to skip"))
     timeout > zero(timeout) || error("invalid timeout")
+
+    # Final time (in seconds).
     final = time() + convert(Float64, timeout)
 
     # Acquire a single image.
     imgs = Vector{Array{T,2}}(num)
     cnt = 0
-    start(cam, T, n + 1)
+    start(cam, T, num + 1)
     while cnt < num
         try
             img, ticks = wait(cam, max(final - time(), 0.0))
@@ -149,14 +159,14 @@ function read(cam::ScientificCamera, ::Type{T}, num::Int;
                 cnt += 1
                 imgs[cnt] = img
             end
-        catch e
-            if truncate && isa(e, TimeoutError)
+        catch err
+            if truncate && isa(err, TimeoutError)
                 warn("Acquisition timeout after $cnt image(s)")
                 num = cnt
                 resize!(imgs, num)
             else
                 abort(cam)
-                rethrow(e)
+                rethrow(err)
             end
         end
     end
@@ -166,13 +176,12 @@ end
 
 
 """
-    start(cam, [T=getcapturebitstype(cam),] n = 2) -> imgs
+    start(cam, [T=getcapturebitstype(cam),] n = 2)
 
-starts continuous acquisition with camera `cam` using `n` image buffers which
-are returned.  Optional argument `T` is the element type of the returned
-images.  If the type is not specified, it is determined automatically by
-`getcapturebitstype(cam)`.  The result is a vector of images, each image is a
-2D Julia array.
+starts continuous acquisition with camera `cam` using `n` image buffers.
+Optional argument `T` is the element type of the returned images.  If the type
+is not specified, it is determined automatically by `getcapturebitstype(cam)`.
+The result is a vector of images, each image is a 2D Julia array.
 
 See also: [`open`](@ref), [`read`](@ref), [`wait`](@ref), [`stop`](@ref),
           [`abort`](@ref).
@@ -213,13 +222,13 @@ abort(cam::ScientificCamera) =
     notimplemented(:stop)
 
 """
-    wait(cam, timeout, drop = false) -> img, timestamp
+    wait(cam, timeout, drop = false) -> img, ticks
 
 waits for the next frame from camera `cam` but not longer than `timeout`
-seconds and returns the next image and its timestamp (that is the date of
-arrival of the captured image in seconds).  If `drop` is `true`, unprocessed
-frames are discarded, *i.e.* only the newest frame is returned.  If the allowed
-time expires before a new image is available, a
+seconds and returns the next image `img` and its timestamp `ticks` (that is the
+date of arrival of the captured image in seconds).  If `drop` is `true`,
+unprocessed frames are discarded, *i.e.* only the newest frame is returned.  If
+the allowed time expires before a new image is available, a
 `ScientificCameras.TimeoutError` is thrown.
 
 If properly implemented, waiting for a frame should consume no CPU.
@@ -489,7 +498,7 @@ equivalentbitstype(::Type{BGRX{32}}) = BGRX32BitsType
     supportedpixelformats(cam, buf = false) -> formats
 
 yields an `Union` of the *concrete* pixel formats supported by the camera `cam`
-or by the capture image buffers if second argument is true.
+or by the captured image buffers if second argument is true.
 
 See also: [`setpixelformat!`](@ref), [`ScientificCameras.PixelFormat`](@ref).
 
@@ -501,10 +510,9 @@ supportedpixelformats(cam::ScientificCamera) =
 
 
 """
-    getpixelformat(cam) -> (campix, bufpix)
+    getpixelformat(cam) -> fmt
 
-yields the current pixel formats for the camera `cam` and for the image
-buffers.
+yields the current pixel format of the camera `cam`.
 
 See also: [`setpixelformat!`](@ref), [`supportedpixelformats`](@ref),
           [`ScientificCameras.PixelFormat`](@ref).
@@ -514,15 +522,13 @@ getpixelformat(cam::ScientificCamera) =
     notimplemented(:getpixelformat)
 
 """
-    setpixelformat!(cam, campix [, bufpix])
+    setpixelformat!(cam, fmt)
 
-sets the pixel formats for the camera `cam` and, possibly, for captured image
-buffers.  The requested pixel formats can be *vague* in the sense that it is
-only a super-class like `ScientificCameras.Color{N}` to request a colored pixel
-format encoded on `N` bits per pixel, the number of bits may even be not
-specified.  If not specified, the pixel format of captured image buffers is
-derived from the camera pixel format.  Use `getpixelformat(cam)` to figure out
-actual concrete formats.
+sets the pixel format for the camera `cam`.  The requested pixel format can be
+*vague* in the sense that it may only a super-class like
+`ScientificCameras.Color{N}` to request a colored pixel format encoded on `N`
+bits per pixel, the number of bits may even be not specified.  Use
+`getpixelformat(cam)` to figure out actual concrete format.
 
 See also: [`getpixelformat`](@ref), [`supportedpixelformats`](@ref),
           [`getcapturebitstype`](@ref),
@@ -532,12 +538,6 @@ See also: [`getpixelformat`](@ref), [`supportedpixelformats`](@ref),
 setpixelformat!(cam::ScientificCamera, ::Type{C}) where {C <: PixelFormat} =
     notimplemented(:setpixelformat!)
 
-function setpixelformat!(cam::ScientificCamera,
-                         ::Type{C}, ::Type{B}) where {C <: PixelFormat,
-                                                      B <: PixelFormat}
-    notimplemented(:setpixelformat!)
-end
-
 """
     getcapturebitstype(cam) -> T
 
@@ -546,7 +546,6 @@ yields the bits type which is used by default to capture images with camera
 
 See also: [`getpixelformat`](@ref), [`setpixelformat!`](@ref),
           [`equivalentbitstype`](@ref).
-
 
 """
 function getcapturebitstype(cam::ScientificCamera)
