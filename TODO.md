@@ -3,3 +3,6 @@
   bits types.
 
 * Provide methods to convert between different pixel formats.
+
+* Add a `flush!` method to free ressources or do that automatically in the
+  `stop` or `abort` methods.
