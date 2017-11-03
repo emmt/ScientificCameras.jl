@@ -133,7 +133,7 @@ region of interest (ROI).  It is however possible that the first dimension (the
 the pixel format used by the camera and the chosen element type.
 
 In the `read` call, the element type of the result is optional.  If omitted, it
-is given by: `getcapturebitstype(cam)`.
+is given by `getcapturebitstype(cam)`.
 
 
 ### Continuous acquisition
@@ -143,14 +143,32 @@ have connected and configured your camera, continuous acquisition is done by a
 loop like:
 
 ```julia
-start(cam, UInt16, 4) # start continuous acquisition
-for number in 1:100
+start(cam, UInt16, 4) # start continuous acquisition with 4 cyclic buffers
+for num in 1:100
     img, ticks = wait(cam, Inf) # wait for next frame (waiting forever)
     ... # process the captured image `img`
     release(cam) # image buffer is again available for acquisition
 end
 abort(cam) # abort acquisition and exit the loop
 ```
+
+The `start` method iniates continuous acquisition, its arguments are the
+element type of the captured images (optional as for the `read` method) and the
+number of capture buffers to use.  The `wait` method waits for the next frame
+from the sepcified camera but not longer than a given number of seconds, it
+returns the next image and its timestamp (in seconds).  After processing of the
+captured image, the `release` method should be called to reuse the associated
+ressources for subsequant acquisitions.  The `stop` (or `abort`) method must be
+called to terminate continuous acquisition (the former stops acquisition after
+completion of the current image while the latter stops acquisition
+immediately).
+
+For real-time applications, it is important to avoid that new ressources be
+allocated in the acquisition loop.  This explains the structure of the
+continuous acquisition and processing loop above: ressources are allocated
+before entering the loop (in particular by the `start` method), they are
+recycled by the `release` method inside the loop and are eventually freed at
+the end of the loop.
 
 
 ### Closing the camera
