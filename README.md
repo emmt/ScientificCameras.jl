@@ -42,7 +42,7 @@ cam = open(SomeCameraModel)
 Third, you configure the camera:
 
 ```julia
-resetroi!(cam) # use full sensor are and no sub-sampling
+resetroi!(cam) # use full sensor area and no sub-sampling
 fullwidth, fullheight = getfullsize(cam) # get the full sensor size
 setspeed!(cam, 100, 0.005) # 100 frames per second, 5ms of exposure
 setgain!(cam, 1.0) # set the gain of the analog to digital conversion
@@ -60,7 +60,7 @@ approximately set the requested value(s) (*e.g.* because of rounding, of
 hardware limitations, *etc.*), it is therefore a good practice to check actual
 values by calling the corresponding `get*(cam)` methods.  However, when a given
 setting is not implemented or when the settings are grossly wrong, the
-`set*!(cam, ...)` methods shall throw a scpecific exception such as
+`set*!(cam, ...)` methods shall throw a specific exception such as
 `ScientificCameras.NotImplementedException` for unimplemented features (so that
 you can specifically catch it).
 
