@@ -11,6 +11,8 @@
 # Copyright (C) 2017, Éric Thiébaut.
 #
 
+isdefined(Base, :__precompile__) && __precompile__(true)
+
 module ScientificCameras
 
 import Base: open, read, close, start, wait
