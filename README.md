@@ -294,6 +294,25 @@ To avoid unpacking pixel values, it is advisable to choose a Julia bits type
 for the captured images which is close or, better, exactly equivalent to the
 camera pixel format.
 
+When reading an image or a sequence of images, `read` accepts a number of
+keywords:
+
+* Use keyword `skip` to specify a number of images to skip.
+
+* Use keyword `timeout` to specify the maximum amount of time (in seconds) to
+  wait for acquisition to complete.  If acquisition takes longer than this
+  time, a `ScientificCameras.TimeoutError` is thrown unless keyword `truncate`
+  is `true` (see below).  The default timeout is computed from the acquisition
+  rate and the total number of images.
+
+* When reading a sequence of images, keyword `truncate` may be set `true` to
+  print a warning and return a truncated sequence instead of throwing an
+  exception in case of timeout.
+
+* Keyword `quiet` can be set `true` to suppress the printing of warning
+  messages (see above).
+
+
 
 ## Implementing a concrete interface
 

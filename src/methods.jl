@@ -77,13 +77,23 @@ reads `n` images from camera `cam`.  The result is a vector of images:
 `imgs[1]` is the first image, `imgs[2]` is the second image and so on.  Each
 image is a 2D Julia array, hence `imgs` is of type `Array{Array{T,2},1}`.
 
-Keyword `skip` can be used to specify a number of images to skip.
+When reading an image or a sequence of images, `read` accepts a number of
+keywords:
 
-Keyword `timeout` can be used to specify the maximum amount of time (in
-seconds) to wait for acquisition to complete.  If acquisition takes longer than
-this time, a `ScientificCameras.TimeoutError` is thrown unless `n` images are
-being read and keyword `truncate` is `true` (it is `false` by default) in which
-case a warning is printed and a truncated list of images is returned.
+* Use keyword `skip` to specify a number of images to skip.
+
+* Use keyword `timeout` to specify the maximum amount of time (in seconds) to
+  wait for acquisition to complete.  If acquisition takes longer than this
+  time, a `ScientificCameras.TimeoutError` is thrown unless keyword `truncate`
+  is `true` (see below).  The default timeout is computed from the acquisition
+  rate and the total number of images.
+
+* When reading a sequence of images, keyword `truncate` may be set `true` to
+  print a warning and return a truncated sequence instead of throwing an
+  exception in case of timeout.
+
+* Keyword `quiet` can be set `true` to suppress the printing of warning
+  messages (see above).
 
 See also: [`open`](@ref), [`start`](@ref), [`equivalentbitstype`](@ref),
           [`defaulttimeout`](@ref), .
@@ -135,7 +145,8 @@ read(cam::ScientificCamera, n::Integer; kwds...) =
 function read(cam::ScientificCamera, ::Type{T}, num::Int;
               skip::Integer = 0,
               timeout::Real = defaulttimeout(cam, num + skip),
-              truncate::Bool = false) where {T}
+              truncate::Bool = false,
+              quiet::Bool = false) where {T}
 
     # Check arguments.
     num ≥ 1 || throw(ArgumentError("invalid number of images"))
@@ -161,7 +172,7 @@ function read(cam::ScientificCamera, ::Type{T}, num::Int;
             end
         catch err
             if truncate && isa(err, TimeoutError)
-                warn("Acquisition timeout after $cnt image(s)")
+                quiet || warn("Acquisition timeout after $cnt image(s)")
                 num = cnt
                 resize!(imgs, num)
             else
