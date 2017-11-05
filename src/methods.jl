@@ -124,9 +124,9 @@ function read(cam::ScientificCamera, ::Type{T};
                 skip -= one(skip)
                 release(cam)
             else
-                # Stop immediately and return image.
+                # Stop immediately and return a copy of the image.
                 abort(cam)
-                return img
+                return copy(img)
             end
         catch e
             abort(cam)
@@ -156,10 +156,10 @@ function read(cam::ScientificCamera, ::Type{T}, num::Int;
     # Final time (in seconds).
     final = time() + convert(Float64, timeout)
 
-    # Acquire a single image.
+    # Acquire a sequence of images.
     imgs = Vector{Array{T,2}}(num)
     cnt = 0
-    start(cam, T, num + 1)
+    start(cam, T, 3)
     while cnt < num
         try
             img, ticks = wait(cam, max(final - time(), 0.0))
@@ -168,7 +168,7 @@ function read(cam::ScientificCamera, ::Type{T}, num::Int;
                 release(cam)
             else
                 cnt += 1
-                imgs[cnt] = img
+                imgs[cnt] = copy(img)
             end
         catch err
             if truncate && isa(err, TimeoutError)

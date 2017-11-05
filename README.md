@@ -155,7 +155,7 @@ abort(cam) # abort acquisition and exit the loop
 The `start` method iniates continuous acquisition, its arguments are the
 element type of the captured images (optional as for the `read` method) and the
 number of capture buffers to use.  The `wait` method waits for the next frame
-from the sepcified camera but not longer than a given number of seconds, it
+from the specified camera but not longer than a given number of seconds, it
 returns the next image and its timestamp (in seconds).  After processing of the
 captured image, the `release` method should be called to reuse the associated
 ressources for subsequant acquisitions.  The `stop` (or `abort`) method must be
@@ -168,7 +168,11 @@ allocated in the acquisition loop.  This explains the structure of the
 continuous acquisition and processing loop above: ressources are allocated
 before entering the loop (in particular by the `start` method), they are
 recycled by the `release` method inside the loop and are eventually freed at
-the end of the loop.
+the end of the loop.  For the same reasons, it must not be assumed (unless
+explicitly stated by the documentation related to a given camera / frame
+grabber) that the captured image returned by the `wait` method is a new array:
+to avoid resources allocation, the same image (or a limited number of images)
+may be recycled by the acquisition loop.
 
 
 ### Closing the camera
