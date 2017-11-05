@@ -248,8 +248,8 @@ This method is intended for continuous acquisition and real time processing, it
 should therefore avoid allocating ressources.  As a result, the images returned
 by `wait` are usually part of ressources associated with the camera and
 cyclically reused when `release(cam)` is called after processing each image.
-This means that the contents of the images is overwritten by the next cycle
-(unless `release(cam)` is not called but then only `n` images can be returned).
+This means that the contents of the captured image is overwritten by the next
+cycle of even by the next captured image.
 
 
 See also: [`start`](@ref), [`release`](@ref).
