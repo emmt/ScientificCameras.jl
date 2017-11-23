@@ -52,12 +52,14 @@ macro exportpublicinterface()
       getbias,
       setbias!,
       getgamma,
-      setgamma!)
+      setgamma!,
+      processimages)
 end
 
 @exportpublicinterface
 
 include("types.jl")
 include("methods.jl")
+include("tools.jl")
 
 end # module

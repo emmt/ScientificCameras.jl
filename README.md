@@ -192,6 +192,56 @@ close the camera to disconnect it from the hardware so that it is immediately
 available for some other purposes.
 
 
+### Simple processing of a sequence of images
+
+The `ScientificCameras` package provides a simple method to process a sequence
+of images:
+
+```julia
+processimages(cam, num, proc, state;
+              skip=0, timeout=sec, truncate=false) -> state, cnt
+```
+
+processes `num` images from camera `cam` by calling the function `proc` as
+follows:
+
+```julia
+state = proc(state, img, ticks, cnt)
+```
+
+to process each image, here `img`, and update `state` (`ticks` is the timestamp
+in seconds of the captured image `img` and `cnt` is the current image number,
+starting at 1 for the first one).
+
+The final state and the actual number of processed images are returned (the
+latter can be smaller than `num` if a timeout occured and keyword `truncate` is
+`true`.
+
+The keywords `skip` (default 0), `timeout` and `truncate` (default `false`) may
+be used and have the same meaning as for the `read` method.
+
+For instance:
+
+```julia
+roi = getroi(cam)
+dims = (roi.width, roi.height)
+sum, cnt = processimages(cam, num, (sum, img, args...) -> (sum .+= img; sum),
+                         zeros(dims))
+```
+
+yields `sum` the sum of a number of images and `cnt` the actual number of
+images (which can onky be `num` in this example).
+
+The methods `mean` and `stat` are extended to compute the sample mean of sample
+meand and standard deviation of a sequence of images:
+
+```julia
+avg = mean(cam, num)
+avg, rms, cnt = stat(cam, num)
+```
+
+
+
 ### Pixel formats
 
 `ScientificCameras.PixelFormat{N}` is the super-type of the various pixel
