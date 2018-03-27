@@ -17,9 +17,9 @@ module ScientificCameras
 
 import Base: open, read, close, start, wait
 
-# Macro for derived modules to re-export the public interface (only methods for
-# now) of the `ScientificCameras` module so that the end-user does not have to
-# explicitly import/use the `ScientificCameras` module.
+# Macro for derived modules to re-export the public interface of the
+# `ScientificCameras` module so that the end-user does not have to explicitly
+# import/use the `ScientificCameras` module.
 macro exportpublicinterface()
     :(export
       open,
@@ -61,5 +61,7 @@ end
 include("types.jl")
 include("methods.jl")
 include("tools.jl")
+include("calibration.jl")
+import .Calibration:  CalibrationData, fit
 
 end # module
