@@ -1,5 +1,7 @@
 module Calibration
 
+using StaticArrays
+
 export
     CalibrationData,
     fit
@@ -175,7 +177,7 @@ function solve2(A11::T, A21::T, A22::T,
                 b1::T, b2::T) where {T <: AbstractFloat}
     A = SMatrix{2,2,T,4}(A11, A21,
                          A21, A22)
-    b = SVector{3,T}(b1, b2)
+    b = SVector{2,T}(b1, b2)
     x = A\b
     return (x[1]*b1 + x[2]*b2), x
 end
