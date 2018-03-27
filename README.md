@@ -441,23 +441,23 @@ methods:
 
 ## Installation
 
-`ScienticCameras.jl` is not yet an
+`ScientificCameras.jl` is not yet an
 [official Julia package](https://pkg.julialang.org/) so you have to clone the
 repository to install the package:
 
 ```julia
-Pkg.clone("https://github.com/emmt/ScienticCameras.jl.git")
+Pkg.clone("https://github.com/emmt/ScientificCameras.jl.git")
 ```
 
-There is nothing to build so no needs to call `Pkg.build("ScienticCameras")`.
+There is nothing to build so no needs to call `Pkg.build("ScientificCameras")`.
 
 Later, it is sufficient to do:
 
 ```julia
-Pkg.update("ScienticCameras")
+Pkg.update("ScientificCameras")
 ```
 
-to pull the latest version.  If you have `ScienticCameras.jl` repository not
+to pull the latest version.  If you have `ScientificCameras.jl` repository not
 managed at all by Julia's package manager, updating is a matter of:
 
 ```sh
@@ -466,4 +466,4 @@ git pull
 ```
 
 assuming `$REPOSITORY` is the path to the top level directory of the
-`ScienticCameras.jl` repository.
+`ScientificCameras.jl` repository.
