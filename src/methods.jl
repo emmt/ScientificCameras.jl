@@ -157,7 +157,7 @@ function read(cam::ScientificCamera, ::Type{T}, num::Int;
     final = time() + convert(Float64, timeout)
 
     # Acquire a sequence of images.
-    imgs = Vector{Array{T,2}}(num)
+    imgs = Vector{Array{T,2}}(undef, num)
     cnt = 0
     start(cam, T, 3)
     while cnt < num
@@ -314,8 +314,7 @@ See also: [`setroi!`](@ref), [`resetroi!`](@ref),
           [`ScientificCameras.ROI`](@ref).
 
 """
-# This version is meant to be extended.
-getroi(cam::ScientificCamera) =
+getroi(cam::ScientificCamera) = # This version is meant to be extended.
     ROI(1, 1, 0, 0, getfullsize(cam)...)
 
 """

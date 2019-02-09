@@ -11,8 +11,6 @@
 # Copyright (C) 2017, Éric Thiébaut.
 #
 
-import Base: mean, stat
-
 """
     mean([T = Float64,] cam, num; kwds...) -> img
 
