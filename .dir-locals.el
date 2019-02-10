@@ -4,7 +4,7 @@
 	 (fill-column . 79)
 	 (ispell-local-dictionary . "american")))
  (c-mode . ((c-file-style . "bsd")
-	    (c-basic-offset . 2)))
+	    (c-basic-offset . 4)))
  (java-mode . ((c-basic-offset . 4)))
  (julia-mode . ())
  (makefile-gmake-mode . ((indent-tabs-mode . t)))
