@@ -483,12 +483,12 @@ bitsperpixel(cam::ScientificCamera) = bitsperpixel(getpixelformat(cam))
     equivalentbitstype(format) -> T
 
 yields the closest equivalent bits type `T` corresponding to a given pixel
-format.  `Void` is returned when there is no known exact equivalence.
+format.  `Nothing` is returned when there is no known exact equivalence.
 
 See also: [`bitsperpixel`](@ref), [`ScientificCameras.PixelFormat`](@ref).
 
 """
-equivalentbitstype(::Type{T}) where {T <: PixelFormat} = Void
+equivalentbitstype(::Type{T}) where {T <: PixelFormat} = Nothing
 equivalentbitstype(::T) where {T <: PixelFormat} = equivalentbitstype(T)
 equivalentbitstype(::Type{Monochrome{8}}) = UInt8
 equivalentbitstype(::Type{Monochrome{16}}) = UInt16
@@ -562,7 +562,7 @@ function getcapturebitstype(cam::ScientificCamera)
     # Default implementation.
     bufpix = getpixelformat(cam)[2]
     T = equivalentbitstype(bufpix)
-    return (T == Void ? UInt8 : T)
+    return (T == Nothing ? UInt8 : T)
 end
 
 """
