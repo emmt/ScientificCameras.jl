@@ -137,7 +137,7 @@ it exists), call:
 
     equivalentbitstype(format)
 
-which returns `Void` when there is no possible exact equivalence.
+which returns `Nothing` when there is no possible exact equivalence.
 
 See also: [`equivalentbitstype`](@ref), [`bitsperpixel`](@ref),
           [`ScientificCameras.Monochrome`](@ref),

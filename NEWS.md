@@ -1,9 +1,11 @@
+- Timeout is now always given in seconds for each single image.
+
 - `read(cam [, T])` returns a single image (not a vector with a single image).
   Default implementations of `read` are provided with keywords `timeout`,
   `truncate` and `skip`.
 
-- New method `defaulttimeout` to compute a timeout for acquiring a given number
-  of images.
+- New method `defaulttimeout` to compute a timeout for acquiring with a
+  given camera.
 
 - `wait` throws an exception of type `ScientificCameras.TimeoutError` in case
   of timeout.

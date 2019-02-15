@@ -124,22 +124,19 @@ function processimages(cam::ScientificCamera,
                        process::Function,
                        state;
                        skip::Integer = 0,
-                       timeout::Real = defaulttimeout(cam, number + skip),
+                       timeout::Real = defaulttimeout(cam),
                        truncate::Bool = false)
     # Check arguments.
     number ≥ 1 || throw(ArgumentError("invalid number of images to process"))
     skip ≥ 0 || throw(ArgumentError("invalid number of images to skip"))
     timeout > zero(timeout) || error("invalid timeout")
 
-    # Final time (in seconds).
-    final = time() + convert(Float64, timeout)
-
     # Acquire and process a sequence of images.
     count = zero(number)
     start(cam, 4)
     while count < number
         try
-            img, ticks = wait(cam, max(final - time(), 0.0))
+            img, ticks = wait(cam, timeout)
             if skip > zero(skip)
                 # Skip this image.
                 skip -= one(skip)

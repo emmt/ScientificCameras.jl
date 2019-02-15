@@ -354,10 +354,10 @@ keywords:
 * Use keyword `skip` to specify a number of images to skip.
 
 * Use keyword `timeout` to specify the maximum amount of time (in seconds) to
-  wait for acquisition to complete.  If acquisition takes longer than this
-  time, a `ScientificCameras.TimeoutError` is thrown unless keyword `truncate`
-  is `true` (see below).  The default timeout is computed from the acquisition
-  rate and the total number of images.
+  wait for the acquisition of each image.  If acquisition of any image takes
+  longer than this time, a `ScientificCameras.TimeoutError` is thrown unless
+  keyword `truncate` is `true` (see below).   The default timeout depends on the
+  exposure time and acquisition frame rate (see [`defaulttimeout`](@ref)).
 
 * When reading a sequence of images, keyword `truncate` may be set `true` to
   print a warning and return a truncated sequence instead of throwing an

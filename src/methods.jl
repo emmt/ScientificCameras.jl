@@ -49,18 +49,18 @@ close(cam::ScientificCamera) =
     notimplemented(:close)
 
 """
-    defaulttimeout(cam, n) -> sec
+    defaulttimeout(cam) -> sec
 
-yields the default timeout (in seconds) to acquire `n` images with camera
-`cam`.  The returned value is one seconds plus the time needed to exposure and
-read `n` images (with a 1% tolerance).
+yields the default timeout (in seconds per image) to acquire images with camera
+`cam`.  The returned value is one second plus the exposure time, plus the
+time between 2 frames (the reciprocal of the frame rate).
 
 See also: [`read`](@ref), [`getspeed`][@ref).
 
 """
-function defaulttimeout(cam::ScientificCamera, n::Integer)
+function defaulttimeout(cam::ScientificCamera)
     fps, exp = getspeed(cam)
-    return 1.0 + 1.01*(n/fps + exp)
+    return Cdouble(1 + 1/fps + exp)
 end
 
 """
@@ -83,10 +83,10 @@ keywords:
 * Use keyword `skip` to specify a number of images to skip.
 
 * Use keyword `timeout` to specify the maximum amount of time (in seconds) to
-  wait for acquisition to complete.  If acquisition takes longer than this
-  time, a `ScientificCameras.TimeoutError` is thrown unless keyword `truncate`
-  is `true` (see below).  The default timeout is computed from the acquisition
-  rate and the total number of images.
+  wait for the acquisition of each image.  If acquisition of any image takes
+  longer than this time, a `ScientificCameras.TimeoutError` is thrown unless
+  keyword `truncate` is `true` (see below).  The default timeout depends on the
+  exposure time and acquisition frame rate (see [`defaulttimeout`](@ref)).
 
 * When reading a sequence of images, keyword `truncate` may be set `true` to
   print a warning and return a truncated sequence instead of throwing an
@@ -105,20 +105,17 @@ read(cam::ScientificCamera; kwds...) =
 # Default version (can be extended to improve performances).
 function read(cam::ScientificCamera, ::Type{T};
               skip::Integer = 0,
-              timeout::Real = defaulttimeout(cam, 1 + skip)) where {T}
+              timeout::Real = defaulttimeout(cam)) where {T}
 
     # Check arguments.
     skip ≥ 0 || throw(ArgumentError("invalid number of images to skip"))
     timeout > zero(timeout) || error("invalid timeout")
 
-    # Final time (in seconds).
-    final = time() + convert(Float64, timeout)
-
     # Acquire a single image.
     start(cam, T, (skip > zero(skip) ? 2 : 1))
     while true
         try
-            img, ticks = wait(cam, max(final - time(), 0.0))
+            img, ticks = wait(cam, timeout)
             if skip > zero(skip)
                 # Skip this frame.
                 skip -= one(skip)
@@ -144,7 +141,7 @@ read(cam::ScientificCamera, n::Integer; kwds...) =
 # Default version (can be extended to improve performances).
 function read(cam::ScientificCamera, ::Type{T}, num::Int;
               skip::Integer = 0,
-              timeout::Real = defaulttimeout(cam, num + skip),
+              timeout::Real = defaulttimeout(cam),
               truncate::Bool = false,
               quiet::Bool = false) where {T}
 
@@ -153,16 +150,13 @@ function read(cam::ScientificCamera, ::Type{T}, num::Int;
     skip ≥ 0 || throw(ArgumentError("invalid number of images to skip"))
     timeout > zero(timeout) || error("invalid timeout")
 
-    # Final time (in seconds).
-    final = time() + convert(Float64, timeout)
-
     # Acquire a sequence of images.
     imgs = Vector{Array{T,2}}(undef, num)
     cnt = 0
     start(cam, T, 3)
     while cnt < num
         try
-            img, ticks = wait(cam, max(final - time(), 0.0))
+            img, ticks = wait(cam, timeout)
             if skip > zero(skip)
                 skip -= one(skip)
                 release(cam)
