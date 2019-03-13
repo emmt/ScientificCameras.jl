@@ -123,7 +123,7 @@ hierarchy is:
          |- BayerFormat{N} (abstract)
          |   |- BayerRGGB{N} (concrete)
          |   |- BayerGRBG{N} (concrete)
-         |   |- BayerBGGR{N} (concrete)
+         |   |- BayerGBRG{N} (concrete)
          |   `- BayerBGGR{N} (concrete)
          `- YUV422 (concrete)
        (etc.)
