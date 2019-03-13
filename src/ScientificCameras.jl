@@ -19,6 +19,7 @@ module ScientificCameras
 # `ScientificCameras` module so that the end-user does not have to explicitly
 # import/use the `ScientificCameras` module.
 _publicsymbols = (
+    :ScientificCamera,
     :open,
     :close,
     :defaulttimeout,
