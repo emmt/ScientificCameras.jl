@@ -1,8 +1,6 @@
-isdefined(:ScientificCameras) || include(joinpath("..", "src", "ScientificCameras.jl"))
+module TestingScientificCameras
 
-module ScientificCamerasTests
-
-using Base.Test
+using Test
 using ScientificCameras
 
 #@testset "Group" begin
