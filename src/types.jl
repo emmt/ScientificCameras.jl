@@ -251,6 +251,59 @@ See also: [`bitsperpixel`](@ref), [`equivalentbitstype`](@ref),
 """
 struct YUV422 <: ColorFormat{32}; end
 
+struct PixelFormatID
+    id::UInt32
+end
+
+const _MONOCHROME = UInt32( 1)
+const _RGB        = UInt32( 2)
+const _BGR        = UInt32( 3)
+const _XRGB       = UInt32( 4)
+const _XBGR       = UInt32( 5)
+const _RGBX       = UInt32( 6)
+const _BGRX       = UInt32( 7)
+const _BAYER_RGGB = UInt32( 8)
+const _BAYER_GRBG = UInt32( 9)
+const _BAYER_GBRG = UInt32(10)
+const _BAYER_BGGR = UInt32(11)
+const _YUV422     = UInt32(12)
+
+_encode(layout::UInt32, nbits::Integer) =
+    PixelFormatID(layout | (UInt32(nbits) << 8))
+
+encode(::Type{Monochrome{N}}) where {N} = _encode(_MONOCHROME, N)
+encode(::Type{RGB{N}})        where {N} = _encode(_RGB, N)
+encode(::Type{BGR{N}})        where {N} = _encode(_BGR, N)
+encode(::Type{XRGB{N}})       where {N} = _encode(_XRGB, N)
+encode(::Type{XBGR{N}})       where {N} = _encode(_XBGR, N)
+encode(::Type{RGBX{N}})       where {N} = _encode(_RGBX, N)
+encode(::Type{BGRX{N}})       where {N} = _encode(_BGRX, N)
+encode(::Type{BayerRGGB{N}})  where {N} = _encode(_BAYER_RGGB, N)
+encode(::Type{BayerGRBG{N}})  where {N} = _encode(_BAYER_GRBG, N)
+encode(::Type{BayerGBRG{N}})  where {N} = _encode(_BAYER_GBRG, N)
+encode(::Type{BayerBGGR{N}})  where {N} = _encode(_BAYER_BGGR, N)
+encode(::Type{YUV422})                  = _encode(_YUV422, 32)
+
+bitsperpixel(fmt::PixelFormatID) = Int(fmt.id >> 8)
+
+function decode(fmt::PixelFormatID) :: Type{<:PixelFormat}
+    N = bitsperpixel(fmt)
+    c = (fmt.id & UInt32(0xff))
+    return (c == _MONOCHROME ? Monochrome{N} :
+            c == _RGB        ? RGB{N}        :
+            c == _BGR        ? BGR{N}        :
+            c == _XRGB       ? XRGB{N}       :
+            c == _XBGR       ? XBGR{N}       :
+            c == _RGBX       ? RGBX{N}       :
+            c == _BGRX       ? BGRX{N}       :
+            c == _BAYER_RGGB ? BayerRGGB{N}  :
+            c == _BAYER_GRBG ? BayerGRBG{N}  :
+            c == _BAYER_GBRG ? BayerGBRG{N}  :
+            c == _BAYER_BGGR ? BayerBGGR{N}  :
+            c == _YUV422 && N == 32 ? YUV422 :
+            error("invalid pixel format identifier"))
+end
+
 end # module PixelFormats
 
 # Import all pixel formats in the main module.
@@ -275,7 +328,7 @@ export
     BGRX32BitsType,
     YUV422BitsType
 
-    # Note that whatever the ordering of values in memory, the constructors use
+# Note that whatever the ordering of values in memory, the constructors use
 # always the same order: R, G, B and, possibly, X (which defaults to 0).
 struct RGB24BitsType
     r::UInt8
