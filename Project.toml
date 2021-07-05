@@ -1,7 +1,7 @@
 name = "ScientificCameras"
 uuid = "c7119640-a72f-41a6-aa41-758559b204e7"
 authors = ["Éric Thiébaut <https://github.com/emmt>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

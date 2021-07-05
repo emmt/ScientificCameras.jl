@@ -241,7 +241,6 @@ avg, rms, cnt = stat(cam, num)
 ```
 
 
-
 ### Pixel formats
 
 `ScientificCameras.PixelFormat{N}` is the super-type of the various pixel
@@ -441,29 +440,11 @@ methods:
 
 ## Installation
 
-`ScientificCameras.jl` is not yet an
-[official Julia package](https://pkg.julialang.org/) so you have to clone the
-repository to install the package:
+The easiest way to install `ScientificCameras` is via the Julia registry
+[`EmmtRegistry`](https://github.com/emmt/EmmtRegistry):
 
 ```julia
-Pkg.clone("https://github.com/emmt/ScientificCameras.jl.git")
+using Pkg
+pkg"registry add https://github.com/emmt/EmmtRegistry"
+pkg"add ScientificCameras"
 ```
-
-There is nothing to build so no needs to call `Pkg.build("ScientificCameras")`.
-
-Later, it is sufficient to do:
-
-```julia
-Pkg.update("ScientificCameras")
-```
-
-to pull the latest version.  If you have `ScientificCameras.jl` repository not
-managed at all by Julia's package manager, updating is a matter of:
-
-```sh
-cd "$REPOSITORY/deps"
-git pull
-```
-
-assuming `$REPOSITORY` is the path to the top level directory of the
-`ScientificCameras.jl` repository.
